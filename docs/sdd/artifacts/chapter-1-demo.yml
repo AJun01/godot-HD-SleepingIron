@@ -136,3 +136,34 @@ artifacts:
       - mother NPC billboards and advances stage on dialogue completion
       - ui_cancel forwards to GameFlow.request_quit_to_menu()
     validation: godot --headless --path . --quit-after 5 scenes/world/chapter_home.tscn
+  - path: scenes/world/chapter_field.tscn
+    type: scene
+    role: stage 2 field road (lit ground + player + camera + StageExit advance zone)
+    invariants:
+      - DirectionalLight3D + WorldEnvironment carry lighting
+      - walking into the StageExit zone advances the stage
+      - ui_cancel forwards to GameFlow.request_quit_to_menu()
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter_field.tscn
+  - path: scenes/world/chapter_town.tscn
+    type: scene
+    role: stage 3 town (Ina blue-soda beat + wine-shop owner buy-wine beat + wine-shop prop)
+    invariants:
+      - DirectionalLight3D + WorldEnvironment carry lighting
+      - Ina is non-advancing; wine-shop owner advances on dialogue completion
+      - ui_cancel forwards to GameFlow.request_quit_to_menu()
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter_town.tscn
+  - path: scenes/world/chapter_return.tscn
+    type: scene
+    role: stage 4 return (Uma/Defa giant-statue-glow trio beat + wine-cart prop)
+    invariants:
+      - DirectionalLight3D + WorldEnvironment carry lighting
+      - Uma advances on the trio beat's completion; NPCs billboard
+      - ui_cancel forwards to GameFlow.request_quit_to_menu()
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter_return.tscn
+  - path: scenes/world/chapter_ending.tscn
+    type: scene
+    role: ending screen ("Chapter 1 DEMO complete") that auto-returns to the menu
+    invariants:
+      - Control root shows the complete message then calls GameFlow.request_quit_to_menu()
+      - tagged &"chapter" in FlowConfig so request_quit_to_menu is valid
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter_ending.tscn
