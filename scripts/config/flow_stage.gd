@@ -17,3 +17,9 @@ extends Resource
 
 ## Packed scene path loaded by SceneRouter when this stage is entered.
 @export var scene_path: String = ""
+
+## Seconds GameFlow waits after this stage becomes active before returning to the
+## menu on its own; 0.0 means the stage never auto-returns. The delay lives here
+## so the ending stage's timing is data, and the scene stays display-only
+## (AGENTS.md Architecture law: only GameFlow drives progression).
+@export var auto_return_delay: float = 0.0

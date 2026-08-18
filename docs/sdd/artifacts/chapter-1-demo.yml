@@ -164,6 +164,6 @@ artifacts:
     type: scene
     role: ending screen ("Chapter 1 DEMO complete") that auto-returns to the menu
     invariants:
-      - Control root shows the complete message then calls GameFlow.request_quit_to_menu()
-      - tagged &"chapter" in FlowConfig so request_quit_to_menu is valid
+      - Control root is display-only; GameFlow owns the auto-return timing
+      - tagged &"chapter" in FlowConfig with auto_return_delay = 3.0
     validation: godot --headless --path . --quit-after 5 scenes/world/chapter_ending.tscn

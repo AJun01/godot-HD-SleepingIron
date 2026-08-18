@@ -44,6 +44,7 @@ id = &"chapter_ending"
 state = &"chapter"
 objective = ""
 scene_path = "res://scenes/world/chapter_ending.tscn"
+auto_return_delay = 3.0
 
 [resource]
 script = ExtResource("1")
