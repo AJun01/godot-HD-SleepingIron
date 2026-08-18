@@ -16,3 +16,107 @@ artifacts:
       - default_font points to assets/fonts/noto_sans_sc.ttf
       - wired as project-wide default via gui/theme/custom in project.godot
     validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_npc_mother.svg
+    type: sprite
+    role: billboarded NPC placeholder — mother (wake-up beat)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_npc_ina.svg
+    type: sprite
+    role: billboarded NPC placeholder — Ina (blue-soda beat)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_npc_wine_shop_owner.svg
+    type: sprite
+    role: billboarded NPC placeholder — wine shop owner (buy-wine beat)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_npc_uma.svg
+    type: sprite
+    role: billboarded NPC placeholder — Uma (giant-statue-glow beat)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_npc_defa.svg
+    type: sprite
+    role: billboarded NPC placeholder — Defa (giant-statue-glow beat)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_prop_home.svg
+    type: sprite
+    role: billboarded stage prop placeholder — home
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_prop_wine_shop.svg
+    type: sprite
+    role: billboarded stage prop placeholder — wine shop
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_prop_wine_cart.svg
+    type: sprite
+    role: billboarded stage prop placeholder — wine cart
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/dialogue/mother.tres
+    type: resource
+    role: DialogueData resource — mother wake-up beat (compressed faithful lines)
+    status: placeholder
+    invariants:
+      - ordered Chinese lines drawn only from docs/source/正文.md lines 26–32
+      - no invented lore
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/dialogue/ina.tres
+    type: resource
+    role: DialogueData resource — Ina blue-soda beat (compressed faithful lines)
+    status: placeholder
+    invariants:
+      - ordered Chinese lines drawn only from docs/source/正文.md lines 48–65
+      - no invented lore
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/dialogue/wine_shop.tres
+    type: resource
+    role: DialogueData resource — wine shop buy-wine beat (compressed faithful lines)
+    status: placeholder
+    invariants:
+      - ordered Chinese lines drawn only from docs/source/正文.md lines 69–83
+      - no invented lore
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/dialogue/uma_defa.tres
+    type: resource
+    role: DialogueData resource — Uma/Defa giant-statue-glow trio beat (compressed faithful lines)
+    status: placeholder
+    invariants:
+      - ordered Chinese lines drawn only from docs/source/正文.md lines 87–128
+      - no invented lore
+    validation: godot --headless --editor --path . --quit-after 10

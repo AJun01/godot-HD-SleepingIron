@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/config/dialogue_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+speaker = ""
+lines = Array[String](["阿特：有人吗？老板，做生意了？", "老板：来啦来啦！", "老板：是阿特啊，你妈叫你过来的？老样子，还是要本地产的？", "阿特：对，这次多拿几瓶吧，消耗太快了……", "老板：行，我给你拿一箱吧！", "（老板从货架下搬出一整箱酒，放到小推车上）", "老板：这个推车你一起带回去，下次来买记得还我就行，省得你搬这么远", "老板：其实这些酒……几周前就涨价了，你回去给你老妈带个话吧", "老板：她上次给的钱只够那一两次，我这边生意也不太好，教会那边供不应求", "老板：我知道你家的情况，大家都支持你父亲的工作……没事！这次就当我送你的", "阿特：……嗯……谢谢老板"])
