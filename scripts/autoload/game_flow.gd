@@ -4,14 +4,14 @@ extends Node
 ## they only call the request_* methods below, each guarded by the current state
 ## so duplicate or out-of-sequence transitions are impossible.
 
-const FLOW_CONFIG: FlowConfig = preload("res://resources/flow_config.tres")
-
 enum State {
 	BOOT,
 	MENU,
 	CHAPTER,
 	TRANSITIONING,
 }
+
+const FLOW_CONFIG: FlowConfig = preload("res://resources/flow_config.tres")
 
 var _state: State = State.BOOT
 var _current_stage_index: int = -1

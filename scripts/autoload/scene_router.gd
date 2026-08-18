@@ -36,7 +36,12 @@ func _run_transition(scene_path: String) -> void:
 		0.0
 	)
 	var tween: Tween = create_tween()
-	tween.tween_property(overlay, "color:a", TRANSITION_CONFIG.fade_color.a, TRANSITION_CONFIG.fade_duration)
+	tween.tween_property(
+		overlay,
+		"color:a",
+		TRANSITION_CONFIG.fade_color.a,
+		TRANSITION_CONFIG.fade_duration
+	)
 	await tween.finished
 	# Defer the swap so the tree mutation never runs inside a signal callback.
 	get_tree().call_deferred("change_scene_to_file", scene_path)

@@ -51,15 +51,17 @@ docs/             # GDD, templates, design references
 
 ## Validation (must pass before any feature is reported done)
 
-From the project root:
+CI enforces the same gates on every push/PR (`.github/workflows/code_review_ci.yml`).
+Run them locally first:
 
 ```bash
+gdlint .   # GDToolkit 4.x; 0 problems required (config: .gdlintrc)
 godot --headless --editor --path . --quit-after 10
 godot --headless --path . --quit-after 5 scenes/<main-scene>.tscn
 ```
 
-Grep the output for `ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`. Any of these =
-FAIL. Never report a change as complete without a clean headless run.
+Grep the godot output for `ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`. Any of these =
+FAIL. Never report a change as complete without a clean headless run and a clean lint run.
 
 ## SDD pipeline rules
 

@@ -54,7 +54,9 @@ docs/source/     # 原作小说《SLEEPING IRON》正文（游戏剧情唯一依
 ## 约定速览
 
 - GDScript 全静态类型、信号解耦、组合优于继承、数值一律 `@export`/Resource。
-- 每个功能完成前必须跑通 headless 验证（见 AGENTS.md）。
+- 每个功能完成前必须跑通本地门禁：`gdlint .` + headless 验证（见 AGENTS.md）。
+- CI（GitHub Actions）：每次 push/PR 自动跑 GDToolkit 静态检查 + Godot 4.7.1 无头编译/场景冒烟；
+  PR 附带 DeepSeek AI 架构审查（需仓库 secret `DEEPSEEK_API_KEY`，非强制门禁）。
 - 一个 task = 一个 commit；PR 由 verifier 创建，人工合并。
 - 剧情以 `docs/source/正文.md` 为准，小说未写到的细节先问作者（你），不自行编造设定。
 - AI 只写代码/处理工程问题；美术由你负责。缺素材不等待——先用 AI 写的 SVG 简易占位符
