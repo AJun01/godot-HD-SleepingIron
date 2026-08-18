@@ -1,0 +1,18 @@
+feature: chapter-1-demo
+artifacts:
+  - path: assets/fonts/noto_sans_sc.ttf
+    type: font
+    role: project-wide CJK UI font (Noto Sans SC, OFL)
+    status: placeholder
+    invariants:
+      - OFL license bundled alongside at assets/fonts/OFL.txt
+      - full CJK coverage so Chinese dialogue/objective text renders without tofu
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/theme.tres
+    type: theme
+    role: project-wide default UI theme carrying the CJK font
+    status: placeholder
+    invariants:
+      - default_font points to assets/fonts/noto_sans_sc.ttf
+      - wired as project-wide default via gui/theme/custom in project.godot
+    validation: godot --headless --editor --path . --quit-after 10
