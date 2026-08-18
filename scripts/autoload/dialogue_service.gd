@@ -37,11 +37,14 @@ func is_open() -> bool:
 	return _is_open
 
 
-func play(dialogue: DialogueData) -> void:
+## Plays every line in order. Returns true when all lines advanced without a
+## forced close; false when the dialogue was force-closed mid-run or the call
+## was a no-op (already open, or a null/empty DialogueData).
+func play(dialogue: DialogueData) -> bool:
 	if _is_open:
-		return
+		return false
 	if dialogue == null or dialogue.lines.is_empty():
-		return
+		return false
 	_ensure_bar()
 	_is_open = true
 	_force_close = false
@@ -53,7 +56,9 @@ func play(dialogue: DialogueData) -> void:
 		await advance_pressed
 		if _force_close:
 			break
+	var completed: bool = not _force_close
 	_close()
+	return completed
 
 
 func _close() -> void:
