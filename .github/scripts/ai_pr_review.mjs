@@ -1,10 +1,17 @@
 // AI PR review for Sleeping Iron HD-2D via DeepSeek (OpenAI-compatible API).
 // Advisory only: never blocks merges; exits 0 even on failure.
 // Requires repo secret DEEPSEEK_API_KEY (https://api.deepseek.com). No key = skip.
+//
+// Posts one review comment on the PR, then creates one GitHub issue per
+// finding (labels: ai-review + ai:high/medium/low). Issue creation is
+// deduplicated by a content-hash marker, so re-runs never duplicate issues.
 
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const MAX_DIFF_CHARS = 60000;
+const MAX_FINDINGS = 10;
+const SEVERITY_LABELS = { high: "ai:high", medium: "ai:medium", low: "ai:low" };
 
 // Per-file sort priority: implementation code first so the size limit cuts
 // docs/spec artifacts instead of the code under review.
@@ -21,8 +28,8 @@ const PRIORITY_PATTERNS = [
 
 const SYSTEM_PROMPT = [
   "你是 Sleeping Iron HD-2D 的资深 Godot 4.7 架构师。项目是线性叙事冒险游戏（非开放世界），",
-  "架构法律：中央 GameFlow 状态机 + 模块化可拓展 autoload 服务。审查这个 PR 的 diff（unified diff 格式），",
-  "输出精炼的中文 markdown 审查报告。重点检查：",
+  "架构法律：中央 GameFlow 状态机 + 模块化可拓展 autoload 服务。审查这个 PR 的 diff（unified diff 格式）。",
+  "重点检查：",
   "1. 状态机解耦：状态流转只能发生在 GameFlow 内，禁止其他类硬编码状态流转；",
   "2. 帧率独立性：_process/_physics_process 必须正确使用 delta，禁止假设固定帧率；",
   "3. 碰撞层：所有物理体/区域必须显式设置 collision layer/mask，禁止默认值；",
@@ -31,9 +38,19 @@ const SYSTEM_PROMPT = [
   "6. GDScript 全静态类型、命名规范（文件 snake_case、类型 PascalCase）；",
   "7. HD-2D 视觉不变量（精灵朝向/锚点/透明）与占位符政策（缺美术用 assets/placeholders/ 的 SVG，不阻塞）；",
   "8. 剧情忠实于 docs/source/正文.md，未写到的设定不得编造。",
-  "输出格式：第一行总评（👍可合入 / ⚠️建议修改 / 🚫有问题），然后按严重程度列出发现（文件路径 + 行号或描述 + 建议），",
-  "最多 10 条；无发现则明确说明。不要客套话，不要复述 diff。",
-].join("");
+  `输出必须是严格 JSON 对象（不要 markdown，不要代码块围栏）：`,
+  `{"verdict":"👍可合入 | ⚠️建议修改 | 🚫有问题 三选一","summary":"一段总评","findings":[`,
+  `{"severity":"high|medium|low","file":"文件路径","line":"行号或位置描述","title":"简短标题（10字内）","detail":"问题描述","suggestion":"建议"}]}`,
+  `findings 最多 ${MAX_FINDINGS} 条，按严重程度排序，只报真实问题，无发现则空数组。不要客套话。`,
+].join("\n");
+
+function markerFor(prNumber, finding) {
+  const hash = createHash("sha256")
+    .update(`${finding.file ?? ""}|${finding.title ?? ""}|${finding.detail ?? ""}`)
+    .digest("hex")
+    .slice(0, 16);
+  return `<!-- ai-review:pr-${prNumber}-${hash} -->`;
+}
 
 async function main() {
   const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -50,6 +67,7 @@ async function main() {
     return;
   }
 
+  const base = `https://api.github.com/repos/${owner}/${repo}`;
   const ghHeaders = {
     Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
     Accept: "application/vnd.github+json",
@@ -57,10 +75,10 @@ async function main() {
     "User-Agent": "sleeping-iron-ai-review",
   };
 
-  const diffResp = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`,
-    { headers: { ...ghHeaders, Accept: "application/vnd.github.v3.diff" }, signal: AbortSignal.timeout(30000) }
-  );
+  const diffResp = await fetch(`${base}/pulls/${prNumber}`, {
+    headers: { ...ghHeaders, Accept: "application/vnd.github.v3.diff" },
+    signal: AbortSignal.timeout(30000),
+  });
   if (!diffResp.ok) throw new Error(`diff fetch failed: ${diffResp.status}`);
   let diff = await diffResp.text();
   if (!diff.trim()) {
@@ -101,6 +119,7 @@ async function main() {
     body: JSON.stringify({
       model: "deepseek-chat",
       temperature: 0.2,
+      response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: `PR diff:\n\n\`\`\`diff\n${diffBody}\n\`\`\`` },
@@ -110,25 +129,124 @@ async function main() {
   });
   if (!llmResp.ok) throw new Error(`deepseek call failed: ${llmResp.status}`);
   const llmJson = await llmResp.json();
-  const review = llmJson?.choices?.[0]?.message?.content;
-  if (!review) throw new Error("empty review from model");
+  const reviewText = llmJson?.choices?.[0]?.message?.content;
+  if (!reviewText) throw new Error("empty review from model");
 
-  const body =
-    `🤖 **AI 架构审查（DeepSeek，仅供参考）**\n\n${review}\n\n` +
-    (truncated ? "> diff 超过长度限制已被截断审查。\n" : "") +
-    "> 本评论由 ai_reviewer.yml 自动生成，不作为合并门禁。";
+  let review;
+  try {
+    review = JSON.parse(reviewText);
+  } catch {
+    console.warn("Model output was not valid JSON — posting raw text, skipping issue creation.");
+    review = null;
+  }
 
-  const commentResp = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`,
-    {
+  // 1. Post the PR comment.
+  const lines = [];
+  lines.push("🤖 **AI 架构审查（DeepSeek，仅供参考）**");
+  if (review && typeof review.verdict === "string") lines.push("", review.verdict);
+  if (review && typeof review.summary === "string") lines.push("", review.summary);
+  if (review && Array.isArray(review.findings) && review.findings.length > 0) {
+    lines.push("");
+    review.findings.slice(0, MAX_FINDINGS).forEach((f, i) => {
+      lines.push(
+        `${i + 1}. **[${f.severity ?? "?"}] ${f.title ?? "未命名"}" — ` +
+          `${f.file ?? "?"}${f.line ? `:${f.line}` : ""}`,
+        `   - 问题：${f.detail ?? ""}`,
+        `   - 建议：${f.suggestion ?? ""}`
+      );
+    });
+  } else if (!review) {
+    lines.push("", reviewText);
+  } else {
+    lines.push("", "无发现。");
+  }
+  lines.push("");
+  if (truncated) lines.push("> diff 超过长度限制已被截断审查。");
+  lines.push("> 本评论由 ai_reviewer.yml 自动生成，不作为合并门禁。");
+
+  const commentResp = await fetch(`${base}/issues/${prNumber}/comments`, {
+    method: "POST",
+    headers: ghHeaders,
+    body: JSON.stringify({ body: lines.join("\n") }),
+    signal: AbortSignal.timeout(30000),
+  });
+  if (!commentResp.ok) throw new Error(`comment post failed: ${commentResp.status}`);
+  console.log("AI review comment posted to PR.");
+
+  // 2. Create one issue per finding (deduplicated by content-hash marker).
+  if (!review || !Array.isArray(review.findings)) return;
+  await ensureLabels(base, ghHeaders, ["ai-review", "ai:high", "ai:medium", "ai:low"]);
+  const existingMarkers = await fetchExistingMarkers(base, ghHeaders, "ai-review");
+
+  let created = 0;
+  let skipped = 0;
+  for (const finding of review.findings.slice(0, MAX_FINDINGS)) {
+    const marker = markerFor(prNumber, finding);
+    if (existingMarkers.has(marker)) {
+      skipped += 1;
+      continue;
+    }
+    const severity = finding.severity ?? "medium";
+    const label = SEVERITY_LABELS[severity] ?? SEVERITY_LABELS.medium;
+    const title = `[AI审查] ${finding.title ?? "未命名问题"}`.slice(0, 120);
+    const issueBody = [
+      `**严重程度**: ${severity}`,
+      `**文件**: \`${finding.file ?? "?"}\`${finding.line ? `  **位置**: ${finding.line}` : ""}`,
+      "",
+      `**问题**`,
+      finding.detail ?? "",
+      "",
+      `**建议**`,
+      finding.suggestion ?? "",
+      "",
+      `来源: PR #${prNumber}（${base.replace("api.github.com/repos", "github.com")}/pull/${prNumber}）AI 架构审查自动生成，参考性建议。`,
+      marker,
+    ].join("\n");
+    const issueResp = await fetch(`${base}/issues`, {
       method: "POST",
       headers: ghHeaders,
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ title, body: issueBody, labels: ["ai-review", label] }),
       signal: AbortSignal.timeout(30000),
+    });
+    if (issueResp.ok) created += 1;
+    else console.warn(`issue create failed (${issueResp.status}) for: ${title}`);
+  }
+  console.log(`AI review issues: ${created} created, ${skipped} deduplicated.`);
+}
+
+async function ensureLabels(base, headers, names) {
+  for (const name of names) {
+    const resp = await fetch(`${base}/labels/${encodeURIComponent(name)}`, {
+      headers,
+      signal: AbortSignal.timeout(15000),
+    });
+    if (resp.ok) continue;
+    await fetch(`${base}/labels`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ name, color: name.startsWith("ai:") ? "0075ca" : "0e8a16" }),
+      signal: AbortSignal.timeout(15000),
+    }).catch(() => {});
+  }
+}
+
+async function fetchExistingMarkers(base, headers, label) {
+  const markers = new Set();
+  for (const state of ["open", "closed"]) {
+    const resp = await fetch(`${base}/issues?state=${state}&labels=${label}&per_page=100`, {
+      headers,
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!resp.ok) continue;
+    const issues = await resp.json();
+    for (const issue of issues) {
+      const body = issue.body ?? "";
+      for (const match of body.matchAll(/<!-- ai-review:([a-z0-9-]+) -->/g)) {
+        markers.add(`<!-- ai-review:${match[1]} -->`);
+      }
     }
-  );
-  if (!commentResp.ok) throw new Error(`comment post failed: ${commentResp.status}`);
-  console.log("AI review posted to PR.");
+  }
+  return markers;
 }
 
 main().catch((error) => {
