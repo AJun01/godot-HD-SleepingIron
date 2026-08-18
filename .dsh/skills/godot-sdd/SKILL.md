@@ -76,5 +76,10 @@ without acceptance criteria.
   into art, never duplicate or misalign.
 - Audio: prefer real external files compatible with Godot (ogg/wav); never synthesize tones
   when the user asked for real effects.
+- **Placeholders:** the agent never blocks on missing art. Use self-authored simple SVG
+  placeholders under `assets/placeholders/` (flat color + shape + text label), named after
+  the target asset and registered with `status: placeholder` in the artifact registry.
+  Final art is supplied later by the human; swapping it in is a separate task, never a
+  reason to stall the current one.
 - Version control: `.godot/`, `.DS_Store`, exported builds and APKs are gitignored. `.import`
   files are tracked (consistent import settings).

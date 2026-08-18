@@ -80,6 +80,20 @@ FAIL. Never report a change as complete without a clean headless run.
 - UI art (SVG/PNG) stays separate from dynamic values (Labels/ProgressBar) — never bake numbers
   into art.
 
+## Role boundary & art placeholder policy
+
+- **The AI agent writes code and solves engineering problems only.** Final art, audio, and
+  visual design direction belong to the human developer. The agent may write art specs,
+  style references, and asset lists, but never produces final production art.
+- **Never block a task on missing art.** When a task needs a visual asset that does not
+  exist yet, proceed immediately with a simple self-authored **SVG placeholder** (flat
+  color + shape + text label describing the intended asset).
+- Placeholders live in `assets/placeholders/`, named after their target asset
+  (e.g. `placeholder_player_idle.svg`), and are registered in the feature's artifact
+  registry with `status: placeholder` so the human can find and swap them for final art.
+- A task is NOT considered blocked while a placeholder is in place; swapping a placeholder
+  for final art is its own later task, never a reason to stall.
+
 ## Language
 
 - **Artifacts** (`.spec/`, docs templates, GDD, code comments): English.

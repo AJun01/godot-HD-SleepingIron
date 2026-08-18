@@ -56,3 +56,5 @@ docs/source/     # 原作小说《SLEEPING IRON》正文（游戏剧情唯一依
 - 每个功能完成前必须跑通 headless 验证（见 AGENTS.md）。
 - 一个 task = 一个 commit；PR 由 verifier 创建，人工合并。
 - 剧情以 `docs/source/正文.md` 为准，小说未写到的细节先问作者（你），不自行编造设定。
+- AI 只写代码/处理工程问题；美术由你负责。缺素材不等待——先用 AI 写的 SVG 简易占位符
+  （`assets/placeholders/`），后续按资产清单替换为正式素材。

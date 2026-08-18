@@ -70,6 +70,17 @@ godot --headless --path . --quit-after 5 scenes/<main-scene>.tscn
 涉及美术资产的 feature 额外登记资产不变量（路径/角色/校验方式），见
 `.dsh/skills/godot-sdd/SKILL.md`。
 
+## 分工与美术占位符约定
+
+- **AI 只负责代码与工程问题**；最终美术/音频/视觉方向由你（作者）负责。AI 可以产出
+  美术规格、风格参考、资产清单，但不产出最终成品美术。
+- **凡是要等美术素材的任务，一律不等。** 缺素材时，先用 AI 自己写的简易 **SVG 占位符**
+  （纯色块 + 形状 + 文字标注用途）顶上，保证开发不中断。
+- 占位符统一放 `assets/placeholders/`，按目标资产命名（如 `placeholder_player_idle.svg`），
+  并在该 feature 的资产登记（`docs/sdd/artifacts/<slug>.yml`）里标 `status: placeholder`，
+  方便你之后按清单逐一替换成正式素材。
+- 替换"占位符 → 正式素材"是独立的后续任务，不作为任何任务的阻塞条件。
+
 ## 纪律红线
 
 - 编排者绝不自己写 scope/design/task/生产代码——一律委派子代理。
