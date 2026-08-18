@@ -120,3 +120,19 @@ artifacts:
       - ordered Chinese lines drawn only from docs/source/正文.md lines 87–128
       - no invented lore
     validation: godot --headless --editor --path . --quit-after 10
+  - path: scenes/actors/player.tscn
+    type: scene
+    role: reusable billboarded player (CharacterBody3D + collision + Sprite3D)
+    invariants:
+      - collision layer 2 (player) / mask 1 (world)
+      - sprite billboards toward camera
+      - movement suppressed while DialogueService.is_open()
+    validation: godot --headless --path . --quit-after 5 scenes/actors/player.tscn
+  - path: scenes/world/chapter_home.tscn
+    type: scene
+    role: stage 1 home front (lit ground + player + camera + home prop + mother NPC)
+    invariants:
+      - DirectionalLight3D + WorldEnvironment carry lighting
+      - mother NPC billboards and advances stage on dialogue completion
+      - ui_cancel forwards to GameFlow.request_quit_to_menu()
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter_home.tscn

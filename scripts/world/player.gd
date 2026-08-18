@@ -18,6 +18,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _read_input_direction() -> Vector3:
+	# While a dialogue is open, report zero input so friction brings the body to
+	# rest and the player cannot walk away mid-beat (design.md movement block).
+	if DialogueService.is_open():
+		return Vector3.ZERO
 	var input_2d: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	# Map screen up/down to world depth so "up" walks away from the camera.
 	return Vector3(input_2d.x, 0.0, input_2d.y)
