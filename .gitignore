@@ -1,0 +1,49 @@
+# Godot 4.x specific ignores
+
+# Godot-specific
+.godot/
+/android/
+export_presets.cfg
+*.translation
+.mono/
+data_*/
+mono_crash.*.json
+
+# Exported builds
+build/
+export/
+*.pck
+*.zip
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+
+# IDEs
+.vscode/
+*.code-workspace
+.idea/
+*.iml
+*.swp
+*.swo
+Session.vim
+.netrwhist
+\#*\#
+.#*
+*.sublime-project
+*.sublime-workspace
