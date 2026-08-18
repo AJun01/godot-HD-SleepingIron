@@ -11,7 +11,7 @@ scene_path = "res://scenes/ui/main_menu.tscn"
 [sub_resource type="Resource" id="FlowStage_chapter"]
 script = ExtResource("2")
 id = &"chapter"
-scene_path = "res://scenes/world/chapter_01.tscn"
+scene_path = "res://scenes/world/chapter.tscn"
 
 [resource]
 script = ExtResource("1")

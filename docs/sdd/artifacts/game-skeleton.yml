@@ -51,11 +51,11 @@ artifacts:
       - buttons call GameFlow methods only
       - UI art separate from dynamic Labels
     validation: godot --headless --path . --quit-after 5 scenes/ui/main_menu.tscn
-  - path: scenes/world/chapter_01.tscn
+  - path: scenes/world/chapter.tscn
     type: scene
     role: HD-2D chapter world (lit 3D ground + billboarded player + camera follow)
     invariants:
       - DirectionalLight3D + WorldEnvironment carry lighting
       - player sprite billboards toward camera
       - camera follow target wired via @export
-    validation: godot --headless --path . --quit-after 5 scenes/world/chapter_01.tscn
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter.tscn
