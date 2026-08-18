@@ -21,6 +21,7 @@ EventBus="*res://scripts/autoload/event_bus.gd"
 SceneRouter="*res://scripts/autoload/scene_router.gd"
 GameFlow="*res://scripts/autoload/game_flow.gd"
 DialogueService="*res://scripts/autoload/dialogue_service.gd"
+ObjectiveHud="*res://scripts/autoload/objective_hud.gd"
 
 [display]
 
