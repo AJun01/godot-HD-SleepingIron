@@ -18,6 +18,7 @@
 ```
 scenes/           # .tscn files, grouped by area (world/, ui/, actors/, ...)
 scripts/          # .gd files; autoloads live in scripts/autoload/
+resources/        # .tres data files (configs, tunables, data-driven content)
 assets/
   sprites/        # character/environment sprite sheets
   textures/       # 3D-world textures, normal maps

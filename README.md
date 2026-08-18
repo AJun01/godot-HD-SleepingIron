@@ -42,6 +42,7 @@
 ```
 scenes/          # 场景（world/ui/actors...）
 scripts/         # GDScript，autoload 放 scripts/autoload/
+resources/       # .tres 数据文件（配置/数值/数据驱动内容）
 assets/          # sprites / textures / audio / fonts / shaders / ui / vfx
 addons/          # 第三方插件
 docs/            # GDD、模板（docs/templates）、题材包（docs/genre-packs）
