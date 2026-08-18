@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FlowConfig" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/config/flow_config.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/config/flow_stage.gd" id="2"]
+
+[sub_resource type="Resource" id="FlowStage_menu"]
+script = ExtResource("2")
+id = &"menu"
+scene_path = "res://scenes/ui/main_menu.tscn"
+
+[sub_resource type="Resource" id="FlowStage_chapter"]
+script = ExtResource("2")
+id = &"chapter"
+scene_path = "res://scenes/world/chapter.tscn"
+
+[resource]
+script = ExtResource("1")
+stages = Array[ExtResource("2")]([SubResource("FlowStage_menu"), SubResource("FlowStage_chapter")])

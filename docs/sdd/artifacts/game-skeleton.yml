@@ -1,0 +1,61 @@
+feature: game-skeleton
+artifacts:
+  - path: assets/placeholders/placeholder_player.svg
+    type: sprite
+    role: billboarded player placeholder (final protagonist sprite TBD)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_ground.svg
+    type: texture
+    role: checkered ground albedo (visual motion reference)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - square 512x512 tileable checker
+      - opaque albedo
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_env_prop.svg
+    type: sprite
+    role: billboarded environment prop placeholder (final prop art TBD)
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 1:1 source aspect ratio
+      - transparent background preserved
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_menu_bg.svg
+    type: texture
+    role: flat dark main menu background
+    status: placeholder
+    invariants:
+      - flat color + shape + text label (no final art)
+      - 16:9 1920x1080 full-bleed
+      - opaque background
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scenes/boot.tscn
+    type: scene
+    role: minimal boot entry that starts the flow via GameFlow.start_flow()
+    invariants:
+      - configured as application/run/main_scene
+      - no missing-main-scene error
+      - delegates progression to GameFlow
+    validation: godot --headless --path . --quit-after 5 scenes/boot.tscn
+  - path: scenes/ui/main_menu.tscn
+    type: scene
+    role: main menu with New Game / Quit controls
+    invariants:
+      - buttons call GameFlow methods only
+      - UI art separate from dynamic Labels
+    validation: godot --headless --path . --quit-after 5 scenes/ui/main_menu.tscn
+  - path: scenes/world/chapter.tscn
+    type: scene
+    role: HD-2D chapter world (lit 3D ground + billboarded player + camera follow)
+    invariants:
+      - DirectionalLight3D + WorldEnvironment carry lighting
+      - player sprite billboards toward camera
+      - camera follow target wired via @export
+    validation: godot --headless --path . --quit-after 5 scenes/world/chapter.tscn
