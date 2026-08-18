@@ -162,9 +162,18 @@ async function main() {
     `${base}/issues?state=all&labels=ai-review&per_page=100`,
     ghHeaders
   );
-  const issueLines = (pastIssues ?? [])
-    .slice(0, 30)
-    .map((i) => `- #${i.number} [${i.state}] ${i.title} — ${(i.body ?? "").replace(/\s+/g, " ").slice(0, 300)}`);
+  const issueLines = [];
+  for (const i of (pastIssues ?? []).slice(0, 30)) {
+    let line = `- #${i.number} [${i.state}] ${i.title} — ${(i.body ?? "").replace(/\s+/g, " ").slice(0, 250)}`;
+    if (i.state === "closed") {
+      // Dismissal rationale lives in the closing comment — include it so the
+      // model knows WHY the topic was adjudicated, not just that it was closed.
+      const comments = await fetchJson(`${base}/issues/${i.number}/comments`, ghHeaders);
+      const last = (comments ?? []).filter((c) => (c.body ?? "").trim() !== "").slice(-1)[0];
+      if (last) line += `\n  裁决: ${last.body.replace(/\s+/g, " ").slice(0, 400)}`;
+    }
+    issueLines.push(line);
+  }
   if (issueLines.length > 0) {
     historyParts.push(`### 已裁决的 AI 审查 issues（已驳回的不得重复报告）\n${issueLines.join("\n")}`);
   }
@@ -201,6 +210,9 @@ async function main() {
   if (filesText) userParts.push(`# ③ 改动文件当前完整内容\n${filesText}`);
   userParts.push(`# ④ 本次 diff\n\`\`\`diff\n${diffBody}\n\`\`\``);
   const userContent = userParts.join("\n\n");
+  console.log(
+    `context sizes: law=${lawText.length}, history=${historyText.length}, files=${filesText.length}, diff=${diffBody.length}`
+  );
 
   const llmResp = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
@@ -232,14 +244,31 @@ async function main() {
     review = null;
   }
 
+  // Hard gate against repeat reports: drop findings that are near-repeats of
+  // any previously filed ai-review issue (open or closed), so re-runs converge
+  // even when the model paraphrases adjudicated topics.
+  await ensureLabels(base, ghHeaders, ["ai-review", "ai:high", "ai:medium", "ai:low"]);
+  const existing = await fetchExistingIssues(base, ghHeaders, "ai-review");
+  let freshFindings = [];
+  let similaritySkipped = 0;
+  if (review && Array.isArray(review.findings)) {
+    for (const f of review.findings.slice(0, MAX_FINDINGS)) {
+      if (existing.records.some((r) => isSimilarFinding(f, r))) similaritySkipped += 1;
+      else freshFindings.push(f);
+    }
+  }
+  if (similaritySkipped > 0) {
+    console.log(`similarity gate: ${similaritySkipped} finding(s) dropped as repeats of filed issues.`);
+  }
+
   // ---- 1. Post the PR comment ----
   const lines = [];
   lines.push("🤖 **AI 架构审查（DeepSeek，仅供参考）**");
   if (review && typeof review.verdict === "string") lines.push("", review.verdict);
   if (review && typeof review.summary === "string") lines.push("", review.summary);
-  if (review && Array.isArray(review.findings) && review.findings.length > 0) {
+  if (freshFindings.length > 0) {
     lines.push("");
-    review.findings.slice(0, MAX_FINDINGS).forEach((f, i) => {
+    freshFindings.forEach((f, i) => {
       lines.push(
         `${i + 1}. **[${f.severity ?? "?"}] ${f.title ?? "未命名"}" — ` +
           `${f.file ?? "?"}${f.line ? `:${f.line}` : ""}`,
@@ -247,10 +276,13 @@ async function main() {
         `   - 建议：${f.suggestion ?? ""}`
       );
     });
+    if (similaritySkipped > 0) {
+      lines.push("", `> 另有 ${similaritySkipped} 条与已裁决 issues 重复，已自动过滤。`);
+    }
   } else if (!review) {
     lines.push("", reviewText);
   } else {
-    lines.push("", "无发现。");
+    lines.push("", "无新增发现（已裁决 topics 未重复报告）。");
   }
   lines.push("");
   if (truncatedDiff) lines.push("> diff 超过长度限制已被截断审查。");
@@ -265,16 +297,14 @@ async function main() {
   if (!commentResp.ok) throw new Error(`comment post failed: ${commentResp.status}`);
   console.log("AI review comment posted to PR.");
 
-  // ---- 2. Create one issue per finding (topic-level dedup) ----
-  if (!review || !Array.isArray(review.findings)) return;
-  await ensureLabels(base, ghHeaders, ["ai-review", "ai:high", "ai:medium", "ai:low"]);
-  const existingMarkers = await fetchExistingMarkers(base, ghHeaders, "ai-review");
+  // ---- 2. Create one issue per fresh finding (topic-level dedup + marker) ----
+  if (!review || freshFindings.length === 0) return;
 
   let created = 0;
   let skipped = 0;
-  for (const finding of review.findings.slice(0, MAX_FINDINGS)) {
+  for (const finding of freshFindings) {
     const marker = markerFor(prNumber, finding);
-    if (existingMarkers.has(marker)) {
+    if (existing.markers.has(marker)) {
       skipped += 1;
       continue;
     }
@@ -322,8 +352,9 @@ async function ensureLabels(base, headers, names) {
   }
 }
 
-async function fetchExistingMarkers(base, headers, label) {
+async function fetchExistingIssues(base, headers, label) {
   const markers = new Set();
+  const records = [];
   for (const state of ["open", "closed"]) {
     const resp = await fetch(`${base}/issues?state=${state}&labels=${label}&per_page=100`, {
       headers,
@@ -333,12 +364,39 @@ async function fetchExistingMarkers(base, headers, label) {
     const issues = await resp.json();
     for (const issue of issues) {
       const body = issue.body ?? "";
+      records.push({ title: issue.title ?? "", body });
       for (const match of body.matchAll(/<!-- ai-review:([a-z0-9-]+) -->/g)) {
         markers.add(`<!-- ai-review:${match[1]} -->`);
       }
     }
   }
-  return markers;
+  return { markers, records };
+}
+
+// Character-set overlap between two strings (CJK-friendly). 1.0 = same set.
+function overlapRatio(a, b) {
+  const norm = (s) => (s ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+  const setA = new Set([...norm(a)]);
+  const setB = new Set([...norm(b)]);
+  if (setA.size === 0 || setB.size === 0) return 0;
+  let inter = 0;
+  for (const ch of setB) {
+    if (setA.has(ch)) inter += 1;
+  }
+  return inter / Math.max(1, Math.min(setA.size, setB.size));
+}
+
+// Near-repeat detection against a previously filed issue: strong title
+// overlap, or title similarity combined with overlapping detail text.
+function isSimilarFinding(finding, record) {
+  const titleA = (finding.title ?? "").replace(/^\[AI审查\]\s*/i, "");
+  const titleB = record.title.replace(/^\[AI审查\]\s*/i, "");
+  const titleRatio = overlapRatio(titleA, titleB);
+  if (titleRatio >= 0.8) return true;
+  const detailA = `${finding.title ?? ""} ${finding.detail ?? ""}`;
+  const detailB = `${record.title} ${record.body.replace(/<!-- ai-review:.*?-->/gs, "")}`;
+  const detailRatio = overlapRatio(detailA, detailB);
+  return titleRatio >= 0.5 && detailRatio >= 0.45;
 }
 
 main().catch((error) => {
