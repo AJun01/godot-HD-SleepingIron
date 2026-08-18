@@ -47,6 +47,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Consume the opening press so the key that opens the dialogue can never
 	# also be read as an advance press.
 	get_viewport().set_input_as_handled()
-	await DialogueService.play(dialogue)
-	if advance_stage_on_complete:
+	# A forced close (e.g. a scene transition) makes play() return false; advancing
+	# then would push the flow forward mid-transition.
+	var completed: bool = await DialogueService.play(dialogue)
+	if completed and advance_stage_on_complete:
 		GameFlow.request_advance_stage()
