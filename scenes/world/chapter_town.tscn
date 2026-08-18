@@ -1,0 +1,99 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/stage.gd" id="1_stage"]
+[ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="2_player_scene"]
+[ext_resource type="Script" path="res://scripts/world/camera_follow.gd" id="3_camera"]
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="4_interactable"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_ground.svg" id="5_ground_tex"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_npc_ina.svg" id="6_ina_tex"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_npc_wine_shop_owner.svg" id="7_owner_tex"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_prop_wine_shop.svg" id="8_shop_tex"]
+[ext_resource type="Resource" path="res://resources/dialogue/ina.tres" id="9_ina_dialogue"]
+[ext_resource type="Resource" path="res://resources/dialogue/wine_shop.tres" id="10_wine_dialogue"]
+
+[sub_resource type="Environment" id="Environment_town"]
+background_mode = 1
+background_color = Color(0.06, 0.07, 0.09, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.58, 0.66, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(40, 40)
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_texture = ExtResource("5_ground_tex")
+
+[sub_resource type="BoxShape3D" id="BoxShape_ground"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_interact"]
+radius = 1.5
+height = 3.0
+
+[node name="ChapterTown" type="Node3D"]
+script = ExtResource("1_stage")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_town")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.6428, -0.766, 0, 0.766, 0.6428, 0, 0, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape_ground")
+
+[node name="GroundMesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("PlaneMesh_ground")
+material_override = SubResource("Material_ground")
+
+[node name="Player" parent="." instance=ExtResource("2_player_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="WineShop" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.28, -6)
+
+[node name="Sprite" type="Sprite3D" parent="WineShop"]
+texture = ExtResource("8_shop_tex")
+billboard = 1
+
+[node name="Ina" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.28, -2)
+
+[node name="Sprite" type="Sprite3D" parent="Ina"]
+texture = ExtResource("6_ina_tex")
+billboard = 1
+
+[node name="Interactable" type="Area3D" parent="Ina"]
+script = ExtResource("4_interactable")
+dialogue = ExtResource("9_ina_dialogue")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ina/Interactable"]
+shape = SubResource("CapsuleShape_interact")
+
+[node name="WineShopOwner" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.28, -4)
+
+[node name="Sprite" type="Sprite3D" parent="WineShopOwner"]
+texture = ExtResource("7_owner_tex")
+billboard = 1
+
+[node name="Interactable" type="Area3D" parent="WineShopOwner"]
+script = ExtResource("4_interactable")
+dialogue = ExtResource("10_wine_dialogue")
+advance_stage_on_complete = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WineShopOwner/Interactable"]
+shape = SubResource("CapsuleShape_interact")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 8)
+script = ExtResource("3_camera")
+target = NodePath("../Player")

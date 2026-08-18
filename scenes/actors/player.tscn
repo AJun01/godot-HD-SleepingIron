@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_player.svg" id="2_player_tex"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
+radius = 0.4
+height = 2.0
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape_player")
+
+[node name="Sprite" type="Sprite3D" parent="."]
+texture = ExtResource("2_player_tex")
+billboard = 1

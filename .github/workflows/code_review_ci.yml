@@ -47,7 +47,12 @@ jobs:
 
       - name: Headless import & script compile check
         run: |
-          # 导入全部资源并编译所有 .gd，输出中出现 ERROR/SCRIPT ERROR/Parse Error 即失败
+          # Pass 1: warm up the fresh import cache (first import run on a clean
+          # checkout can emit benign startup errors while .fontdata is generated —
+          # e.g. a custom theme font loading before its import cache exists).
+          godot --headless --editor --path . --quit-after 120 || true
+          # Pass 2: strict gate — with a warm cache any remaining
+          # ERROR/SCRIPT ERROR/Parse Error/Failed loading is a real defect.
           godot --headless --editor --path . --quit-after 60 2>&1 | tee import.log
           ! grep -E "ERROR|SCRIPT ERROR|Parse Error|Failed loading" import.log
 

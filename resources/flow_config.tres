@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FlowConfig" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="FlowConfig" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/config/flow_config.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/config/flow_stage.gd" id="2"]
@@ -6,13 +6,46 @@
 [sub_resource type="Resource" id="FlowStage_menu"]
 script = ExtResource("2")
 id = &"menu"
+state = &"menu"
+objective = ""
 scene_path = "res://scenes/ui/main_menu.tscn"
 
-[sub_resource type="Resource" id="FlowStage_chapter"]
+[sub_resource type="Resource" id="FlowStage_chapter_home"]
 script = ExtResource("2")
-id = &"chapter"
-scene_path = "res://scenes/world/chapter.tscn"
+id = &"chapter_home"
+state = &"chapter"
+objective = "在家中醒来，与母亲交谈后出门"
+scene_path = "res://scenes/world/chapter_home.tscn"
+
+[sub_resource type="Resource" id="FlowStage_chapter_field"]
+script = ExtResource("2")
+id = &"chapter_field"
+state = &"chapter"
+objective = "穿过田间小路，前往镇上"
+scene_path = "res://scenes/world/chapter_field.tscn"
+
+[sub_resource type="Resource" id="FlowStage_chapter_town"]
+script = ExtResource("2")
+id = &"chapter_town"
+state = &"chapter"
+objective = "在镇上买好酒"
+scene_path = "res://scenes/world/chapter_town.tscn"
+
+[sub_resource type="Resource" id="FlowStage_chapter_return"]
+script = ExtResource("2")
+id = &"chapter_return"
+state = &"chapter"
+objective = "带着酒回家，与同伴一同启程"
+scene_path = "res://scenes/world/chapter_return.tscn"
+
+[sub_resource type="Resource" id="FlowStage_chapter_ending"]
+script = ExtResource("2")
+id = &"chapter_ending"
+state = &"chapter"
+objective = ""
+scene_path = "res://scenes/world/chapter_ending.tscn"
+auto_return_delay = 3.0
 
 [resource]
 script = ExtResource("1")
-stages = Array[ExtResource("2")]([SubResource("FlowStage_menu"), SubResource("FlowStage_chapter")])
+stages = Array[ExtResource("2")]([SubResource("FlowStage_menu"), SubResource("FlowStage_chapter_home"), SubResource("FlowStage_chapter_field"), SubResource("FlowStage_chapter_town"), SubResource("FlowStage_chapter_return"), SubResource("FlowStage_chapter_ending")])

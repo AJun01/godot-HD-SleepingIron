@@ -1,6 +1,6 @@
 extends Node3D
-## Chapter world controller. Owns only the input escape hatch: ui_cancel asks
-## GameFlow to return to the menu. Progression stays owned by GameFlow
+## Generic chapter-stage controller. Owns only the input escape hatch: ui_cancel
+## asks GameFlow to return to the menu. Progression stays owned by GameFlow
 ## (AGENTS.md Architecture law: scenes never advance themselves).
 
 

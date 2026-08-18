@@ -1,0 +1,64 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/stage.gd" id="1_stage"]
+[ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="2_player_scene"]
+[ext_resource type="Script" path="res://scripts/world/camera_follow.gd" id="3_camera"]
+[ext_resource type="Script" path="res://scripts/world/stage_exit.gd" id="4_stage_exit"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_ground.svg" id="5_ground_tex"]
+
+[sub_resource type="Environment" id="Environment_field"]
+background_mode = 1
+background_color = Color(0.06, 0.07, 0.09, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.58, 0.66, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(40, 40)
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_texture = ExtResource("5_ground_tex")
+
+[sub_resource type="BoxShape3D" id="BoxShape_ground"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="BoxShape3D" id="BoxShape_exit"]
+size = Vector3(12, 4, 2)
+
+[node name="ChapterField" type="Node3D"]
+script = ExtResource("1_stage")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_field")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.6428, -0.766, 0, 0.766, 0.6428, 0, 0, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape_ground")
+
+[node name="GroundMesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("PlaneMesh_ground")
+material_override = SubResource("Material_ground")
+
+[node name="Player" parent="." instance=ExtResource("2_player_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="StageExit" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -16)
+script = ExtResource("4_stage_exit")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StageExit"]
+shape = SubResource("BoxShape_exit")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 8)
+script = ExtResource("3_camera")
+target = NodePath("../Player")

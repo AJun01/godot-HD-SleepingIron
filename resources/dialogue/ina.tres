@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/config/dialogue_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+speaker = ""
+lines = Array[String](["伊娜：阿特！早呀！", "阿特：早……嘿嘿", "伊娜：休息得怎么样？睡得好吗？", "阿特：睡得不错，这几天没怎么做恶梦了，一觉睡到大天亮！", "伊娜：那就好～", "伊娜：来！给你！", "（伊娜从冷柜里翻出一瓶蓝色气泡水，递了过来）", "阿特：啊……谢谢！", "伊娜：那我去忙啦～"])
