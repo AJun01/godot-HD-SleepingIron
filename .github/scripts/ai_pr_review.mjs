@@ -2,7 +2,7 @@
 // Advisory only: never blocks merges; exits 0 even on failure.
 // Requires repo secret DEEPSEEK_API_KEY (https://api.deepseek.com). No key = skip.
 
-const fs = require("node:fs");
+import { readFileSync } from "node:fs";
 
 const MAX_DIFF_CHARS = 40000;
 
@@ -30,7 +30,7 @@ async function main() {
   }
 
   const [owner, repo] = (process.env.GITHUB_REPOSITORY ?? "").split("/");
-  const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
+  const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
   const prNumber = event?.pull_request?.number;
   if (!owner || !repo || !prNumber) {
     console.log("Not a pull_request event or missing context — skipping.");
