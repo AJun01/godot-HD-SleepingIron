@@ -4,7 +4,20 @@
 
 import { readFileSync } from "node:fs";
 
-const MAX_DIFF_CHARS = 40000;
+const MAX_DIFF_CHARS = 60000;
+
+// Per-file sort priority: implementation code first so the size limit cuts
+// docs/spec artifacts instead of the code under review.
+const PRIORITY_PATTERNS = [
+  /^project\.godot$/,
+  /^scripts\//,
+  /^scenes\//,
+  /^resources\//,
+  /^\.github\/workflows\//,
+  /^\.github\/scripts\//,
+  /^assets\//,
+  /^\.gdlintrc$/,
+];
 
 const SYSTEM_PROMPT = [
   "你是 Sleeping Iron HD-2D 的资深 Godot 4.7 架构师。项目是线性叙事冒险游戏（非开放世界），",
@@ -54,8 +67,30 @@ async function main() {
     console.log("Empty PR diff — skipping.");
     return;
   }
-  const truncated = diff.length > MAX_DIFF_CHARS;
-  if (truncated) diff = diff.slice(0, MAX_DIFF_CHARS) + "\n[truncated]";
+
+  // Split into per-file chunks, drop .import sidecar noise, and reorder so
+  // implementation code survives truncation ahead of .spec/docs artifacts.
+  const chunks = diff.split(/(?=^diff --git )/m).filter((c) => c.trim() !== "");
+  const fileOf = (chunk) => {
+    const match = chunk.match(/^diff --git a\/(\S+) b\//m);
+    return match ? match[1] : "";
+  };
+  const priorityOf = (file) => {
+    for (let i = 0; i < PRIORITY_PATTERNS.length; i += 1) {
+      if (PRIORITY_PATTERNS[i].test(file)) return i;
+    }
+    return PRIORITY_PATTERNS.length;
+  };
+  const keep = chunks.filter((c) => !fileOf(c).endsWith(".import"));
+  const ordered = [...keep].sort((a, b) => {
+    const pa = priorityOf(fileOf(a));
+    const pb = priorityOf(fileOf(b));
+    return pa !== pb ? pa - pb : keep.indexOf(a) - keep.indexOf(b);
+  });
+  const fileList = ordered.map((c) => fileOf(c)).filter(Boolean).join(", ");
+  let diffBody = `Changed files (${ordered.length}): ${fileList}\n\n${ordered.join("")}`;
+  const truncated = diffBody.length > MAX_DIFF_CHARS;
+  if (truncated) diffBody = diffBody.slice(0, MAX_DIFF_CHARS) + "\n[truncated: remaining diff omitted]";
 
   const llmResp = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
@@ -68,7 +103,7 @@ async function main() {
       temperature: 0.2,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: `PR diff:\n\n\`\`\`diff\n${diff}\n\`\`\`` },
+        { role: "user", content: `PR diff:\n\n\`\`\`diff\n${diffBody}\n\`\`\`` },
       ],
     }),
     signal: AbortSignal.timeout(120000),
