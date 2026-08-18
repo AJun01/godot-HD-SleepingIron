@@ -87,3 +87,6 @@ godot --headless --path . --quit-after 5 scenes/<main-scene>.tscn
 - 不手工编辑 `.spec/` 内工件；流程中不删除工件目录。
 - 一个 task = 一个 commit（conventional commits）。
 - 工件语言：英语。与你的对话：中文。
+- **线性游戏（非开放世界）**：进度由中央 GameFlow 状态机驱动，场景按顺序衔接，不做自由漫游。
+- **所有 spec/design 必须模块化 + 可拓展**：小职责 autoload 服务、组合优先、Resource 数据、
+  EventBus 边界；后续新系统（战斗/背包/存档/对话）可插拔接入，不重写已有系统。

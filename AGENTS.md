@@ -71,6 +71,17 @@ FAIL. Never report a change as complete without a clean headless run.
 - Git and `gh` (authenticated) are prerequisites for the full flow; headless-only workflows
   degrade gracefully without them.
 
+## Architecture law (user-mandated)
+
+- **This is a linear game, not an open world.** Progression flows through discrete, ordered
+  stages (scenes) driven by a central game-flow state machine. No free-roam world map, no
+  non-linear exploration systems.
+- **Every spec and design must be modular and extensible.** Systems are isolated behind
+  small, single-responsibility autoload services or composable components; no monolithic
+  scenes, no god-scripts. Future features (combat, inventory, saves, dialogue) must be
+  addable without rewriting existing systems. Prefer composition, dependency injection via
+  `@export`, `Resource` files for data, and EventBus signals at coupling boundaries.
+
 ## HD-2D visual invariants
 
 - Sprite art keeps its source aspect ratio, anchor points, and transparency; no accidental
