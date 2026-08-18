@@ -18,5 +18,8 @@ Tasks run in ID order. The Orchestrator executes them one at a time. The order I
 
 ## Fixes
 
-| Fix ID | Title | Triggered by failure in | Files (suggested) | Status |
-|--------|-------|-------------------------|-------------------|--------|
+| Fix ID  | Title                                              | Linked issue | Status  |
+|---------|----------------------------------------------------|--------------|---------|
+| fix-001 | Move ending auto-return timing into GameFlow       | #3           | done (6442bcd) |
+| fix-002 | DialogueService.play() returns completion status   | #5           | done (1fc4be2) |
+| fix-003 | Interactable advances only on normal completion    | #4           | done (3ab088d) |
