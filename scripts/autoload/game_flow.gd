@@ -35,6 +35,12 @@ func request_new_game() -> void:
 	_transition_to_stage(_current_stage_index + 1)
 
 
+func request_advance_stage() -> void:
+	if _state != State.CHAPTER:
+		return
+	_transition_to_stage(_current_stage_index + 1)
+
+
 func request_quit_to_menu() -> void:
 	if _state != State.CHAPTER:
 		return
@@ -52,17 +58,21 @@ func _transition_to_stage(stage_index: int) -> void:
 		return
 	var stage: FlowStage = FLOW_CONFIG.stages[stage_index]
 	_current_stage_index = stage_index
-	_pending_state = _state_for_stage_id(stage.id)
+	_pending_state = _state_for_stage_tag(stage.state)
 	_state_before_transition = _state
 	_set_state(State.TRANSITIONING)
 	var started: bool = SceneRouter.transition_to(stage.scene_path)
 	if not started:
 		# SceneRouter was already busy; roll back so the state stays consistent.
 		_set_state(_state_before_transition)
+		return
+	# Emitted only after transition_to confirms the request started: the HUD must
+	# update at fade-start and never on a rolled-back (busy) request.
+	EventBus.stage_changed.emit(stage_index, stage.objective)
 
 
-func _state_for_stage_id(stage_id: StringName) -> State:
-	match stage_id:
+func _state_for_stage_tag(stage_tag: StringName) -> State:
+	match stage_tag:
 		&"menu":
 			return State.MENU
 		&"chapter":
