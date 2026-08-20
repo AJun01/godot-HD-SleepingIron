@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="SpriteFrames" path="res://assets/sprites/trial_gemini/character_frames.tres" id="1"]
+
+[node name="TrialGeminiAnim" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = ExtResource("1")
+animation = &"walk_down"
+playing = true

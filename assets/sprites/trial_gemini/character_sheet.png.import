@@ -2,21 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cbfjug8x67jrc"
-path.s3tc="res://.godot/imported/placeholder_prop_wine_cart.svg-b39dd7fef352319ebad729ced684b4da.s3tc.ctex"
+uid="uid://bepv7n4e1m6df"
+path="res://.godot/imported/character_sheet.png-a10ab09445145a16d07cdaa2f6d07c07.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/placeholders/placeholder_prop_wine_cart.svg"
-dest_files=["res://.godot/imported/placeholder_prop_wine_cart.svg-b39dd7fef352319ebad729ced684b4da.s3tc.ctex"]
+source_file="res://assets/sprites/trial_gemini/character_sheet.png"
+dest_files=["res://.godot/imported/character_sheet.png-a10ab09445145a16d07cdaa2f6d07c07.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -24,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,7 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false
+detect_3d/compress_to=1
