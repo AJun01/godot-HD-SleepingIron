@@ -97,3 +97,7 @@ move_down={
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/aseprite_file/plugin.cfg", "res://addons/aseprite_importer/plugin.cfg")
