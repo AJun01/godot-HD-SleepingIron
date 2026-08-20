@@ -1,0 +1,19 @@
+{
+  "cell_width": 256,
+  "cell_height": 256,
+  "columns": 6,
+  "rows": [
+    {"name": "idle", "loop": true, "frames": 4},
+    {"name": "run", "loop": true, "frames": 6},
+    {"name": "jump", "loop": false, "frames": 3},
+    {"name": "fall", "loop": true, "frames": 3},
+    {"name": "land", "loop": false, "frames": 2},
+    {"name": "attack_1", "loop": false, "frames": 4},
+    {"name": "attack_2", "loop": false, "frames": 4},
+    {"name": "attack_3", "loop": false, "frames": 6},
+    {"name": "attack_air", "loop": false, "frames": 4},
+    {"name": "hit", "loop": false, "frames": 3},
+    {"name": "dodge", "loop": false, "frames": 6},
+    {"name": "death", "loop": false, "frames": 6}
+  ]
+}

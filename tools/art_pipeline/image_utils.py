@@ -1,0 +1,76 @@
+"""Shared image utilities — load, save, resize, white-to-alpha.
+
+Vendored from FrameRonin-MCP lib/image_utils.py (see VENDOR.md).
+Only the pure-processing helpers used by the character-sheet pipeline are kept.
+"""
+
+import io
+import base64
+from pathlib import Path
+from PIL import Image
+
+
+def load_image(source: str | bytes | Path) -> Image.Image:
+    """Load image from file path, base64 string, or raw bytes. Returns RGBA PIL Image."""
+    if isinstance(source, bytes):
+        img = Image.open(io.BytesIO(source))
+    elif isinstance(source, Path):
+        img = Image.open(source)
+    elif isinstance(source, str):
+        if source.startswith("data:") and "," in source:
+            source = source.split(",", 1)[1]
+        try:
+            raw = base64.b64decode(source)
+            img = Image.open(io.BytesIO(raw))
+        except Exception:
+            if Path(source).exists():
+                img = Image.open(source)
+            else:
+                raise ValueError(f"Cannot parse input: not a valid file path or base64")
+    else:
+        raise TypeError(f"Unsupported source type: {type(source)}")
+    return img.convert("RGBA")
+
+
+def save_image(img: Image.Image, output_path: str | Path, format: str = "PNG") -> Path:
+    """Save PIL image to file. Returns output path."""
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(output_path, format=format)
+    return output_path
+
+
+def resize_image(
+    img: Image.Image,
+    width: int | None = None,
+    height: int | None = None,
+    scale: float | None = None,
+    resample: int = Image.Resampling.LANCZOS,
+) -> Image.Image:
+    """Resize image. Specify width/height, scale factor, or both dimensions."""
+    w, h = img.size
+    if scale is not None:
+        w, h = int(w * scale), int(h * scale)
+    if width is not None and height is not None:
+        w, h = width, height
+    elif width is not None:
+        ratio = width / w
+        w, h = width, int(h * ratio)
+    elif height is not None:
+        ratio = height / h
+        w, h = int(w * ratio), height
+    return img.resize((max(1, w), max(1, h)), resample)
+
+
+def white_to_alpha(img: Image.Image, threshold: int = 240) -> Image.Image:
+    """
+    Convert white pixels to transparent — pixel-art-safe, no AI blur.
+    Pixels where R>threshold AND G>threshold AND B>threshold become transparent.
+    Hard edge: alpha < 128 → fully transparent.
+    """
+    import numpy as np
+    arr = np.array(img.convert("RGBA")).astype(np.float32)
+    mask = (arr[:, :, 0] > threshold) & (arr[:, :, 1] > threshold) & (arr[:, :, 2] > threshold)
+    arr[mask, 3] = 0
+    arr[arr[:, :, 3] < 128, :] = 0
+    return Image.fromarray(arr.astype(np.uint8), "RGBA")
