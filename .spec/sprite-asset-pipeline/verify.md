@@ -64,4 +64,4 @@ PASS
 ## PR
 - Target branch: master
 - Pushed: yes
-- PR URL: n/a (filled in a follow-up commit after `gh pr create`)
+- PR URL: https://github.com/AJun01/godot-HD-SleepingIron/pull/28
