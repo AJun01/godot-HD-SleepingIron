@@ -1,0 +1,39 @@
+feature: act-player-foundation
+artifacts:
+  - path: scenes/actors/player.tscn
+    type: scene
+    role: side-view player character (CharacterBody3D on the X–Y play plane, billboarded AnimatedSprite3D)
+    invariants:
+      - collision layer 2 (player) / mask 1 (world)
+      - Z pinned to the play plane; movement + jump feel driven by PlayerConfig
+      - billboarded AnimatedSprite3D driven by the composable animator
+    validation: godot --headless --path . --quit-after 5 scenes/actors/player.tscn
+  - path: scenes/act/arena.tscn
+    type: scene
+    role: standalone ACT test arena (lit ground + two steps + player + side-view camera)
+    invariants:
+      - WorldEnvironment + DirectionalLight3D carry lighting
+      - flat ground (top Y=0) + two steps (tops ≈ 0.5 / 1.0); world = layer 1, player = layer 2
+      - player spawned at Z=0; camera is a fixed side view (X-follow, Y≈1.2, Z=10, horizontal forward)
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scripts/world/player_animator.gd
+    type: script
+    role: composable five-state animation machine (idle/run/jump/fall/land) driving the AnimatedSprite3D
+    invariants:
+      - one-way dependency on the player (reads state, never mutates physics)
+      - flip_h mirrors facing; land holds until its one-shot finishes
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/world/side_view_camera.gd
+    type: script
+    role: arena side-view follow camera (X-follow smoothing, fixed Y and Z, horizontal forward)
+    invariants:
+      - vertical_offset 1.2 / z_distance 10.0 (fixed Y and Z)
+      - identity rotation (horizontal forward), perspective projection
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/player_config.tres
+    type: resource
+    role: PlayerConfig tunables for movement, jump and gravity
+    invariants:
+      - gravity promoted out of @export into the Resource
+      - jump buffer + jump-cut values drive tap-vs-hold jump feel
+    validation: godot --headless --editor --path . --quit-after 10
