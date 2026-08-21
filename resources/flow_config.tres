@@ -1,13 +1,12 @@
-[gd_resource type="Resource" script_class="FlowConfig" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="FlowConfig" format=3 uid="uid://fw30vh1itacb"]
 
-[ext_resource type="Script" path="res://scripts/config/flow_config.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/config/flow_stage.gd" id="2"]
+[ext_resource type="Script" uid="uid://dy157d7ufighs" path="res://scripts/config/flow_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://bs36ah8wimvwa" path="res://scripts/config/flow_stage.gd" id="2"]
 
 [sub_resource type="Resource" id="FlowStage_menu"]
 script = ExtResource("2")
 id = &"menu"
 state = &"menu"
-objective = ""
 scene_path = "res://scenes/ui/main_menu.tscn"
 
 [sub_resource type="Resource" id="FlowStage_chapter_home"]
@@ -42,7 +41,6 @@ scene_path = "res://scenes/world/chapter_return.tscn"
 script = ExtResource("2")
 id = &"chapter_ending"
 state = &"chapter"
-objective = ""
 scene_path = "res://scenes/world/chapter_ending.tscn"
 auto_return_delay = 3.0
 
