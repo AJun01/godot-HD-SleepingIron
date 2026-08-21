@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/sprite_anim_preview.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/placeholder_character/character_frames.tres" id="2_frames"]
+
+[node name="SpriteAnimPreview" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+playing = true
