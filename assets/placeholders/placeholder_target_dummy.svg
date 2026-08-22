@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>placeholder_target_dummy</title>
+  <!-- Inert combat-range target dummy: flat-color humanoid silhouette with a
+       red target ring on the torso. Final art is a human developer's job. -->
+  <g fill="#4a5266">
+    <circle cx="128" cy="44" r="24"/>
+    <rect x="98" y="70" width="60" height="84" rx="10"/>
+    <rect x="62" y="76" width="22" height="66" rx="10"/>
+    <rect x="172" y="76" width="22" height="66" rx="10"/>
+    <rect x="100" y="156" width="22" height="76" rx="8"/>
+    <rect x="134" y="156" width="22" height="76" rx="8"/>
+  </g>
+  <g fill="none" stroke="#c93c4a" stroke-width="6">
+    <circle cx="128" cy="112" r="26"/>
+    <circle cx="128" cy="112" r="13"/>
+  </g>
+  <circle cx="128" cy="112" r="3" fill="#c93c4a"/>
+  <text x="128" y="248" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#c93c4a">placeholder_target_dummy</text>
+</svg>

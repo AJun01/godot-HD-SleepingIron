@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/zone_pillar.gd" id="1_pillar"]
+
+[node name="ZonePillar" type="Node3D"]
+script = ExtResource("1_pillar")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
+billboard = 1
+fixed_size = true
+pixel_size = 0.005
+font_size = 40
+outline_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
