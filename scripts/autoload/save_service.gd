@@ -13,25 +13,33 @@ const POSITION_KEY: String = "position"
 const FACING_KEY: String = "facing"
 
 
-func save_player_state(position: Vector3, facing: int) -> void:
+func save_player_state(position: Vector3, facing: int) -> bool:
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
-		return
+		push_error("SaveService: failed to open save file for writing at %s" % SAVE_PATH)
+		return false
 	var data: Dictionary = {
 		POSITION_KEY: [position.x, position.y, position.z],
 		FACING_KEY: facing,
 	}
 	file.store_string(JSON.stringify(data))
+	return true
 
 
 func load_player_state() -> Dictionary:
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if file == null:
+		push_error("SaveService: failed to open save file for reading at %s" % SAVE_PATH)
 		return {}
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed is not Dictionary:
+		push_error("SaveService: save file %s does not contain a JSON object" % SAVE_PATH)
 		return {}
-	return _decode_state(parsed)
+	var state: Dictionary = _decode_state(parsed)
+	if state.is_empty():
+		push_error("SaveService: save file %s contains invalid save data" % SAVE_PATH)
+		return {}
+	return state
 
 
 func _decode_state(data: Dictionary) -> Dictionary:
