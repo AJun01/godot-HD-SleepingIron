@@ -16,7 +16,7 @@ const STATE_LAND: StringName = &"land"
 @export var player: Player
 
 ## Fallback path resolved in _ready when the scene-serialized Node reference did
-## not resolve (same defensive pattern as camera_follow.gd).
+## not resolve (same defensive path-resolution fallback).
 @export var player_path: NodePath = NodePath("..")
 
 ## AnimatedSprite3D this component drives.

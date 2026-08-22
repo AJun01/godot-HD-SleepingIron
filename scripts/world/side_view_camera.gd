@@ -6,14 +6,14 @@ extends Camera3D
 ## framing never drifts vertically or in depth. The camera never follows Z:
 ## depth is expressed by the player's own Z position under the fixed
 ## perspective camera (the Octopath depth cue), and following Z would zoom the
-## whole scene as the player walks in depth. Mirrors camera_follow.gd's target/
-## target_path/follow_speed pattern but with side-view semantics (no look_at).
+## whole scene as the player walks in depth. Uses the same target/target_path/
+## follow_speed follow pattern but with side-view semantics (no look_at).
 
 ## Node the camera tracks. Wired in the scene via @export dependency injection.
 @export var target: Node3D
 
 ## Fallback path resolved in _ready when the scene-serialized Node reference did
-## not resolve (same defensive pattern as camera_follow.gd).
+## not resolve (same defensive path-resolution fallback).
 @export var target_path: NodePath = NodePath("../Player")
 
 ## Fixed camera height in world space (elevated DNF-style side view, looking
