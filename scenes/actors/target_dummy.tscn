@@ -8,7 +8,7 @@
 size = Vector3(0.7, 2.2, 0.5)
 
 [sub_resource type="QuadMesh" id="QuadMesh_bar"]
-size = Vector2(2, 0.2)
+size = Vector2(2, 0.3)
 center_offset = Vector3(1, 0, 0)
 
 [sub_resource type="StandardMaterial3D" id="Material_bar_bg"]

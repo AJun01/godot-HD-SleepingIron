@@ -181,3 +181,21 @@ by setting the `responsibility` export):
 ## Commit (implementation)
 
 `fix(arena): 训练场立柱仅显示短标题并设置换行宽度，加粗木桩血条`
+
+## Implementation log
+
+- Applied the fix exactly as specified. `scenes/dev/zone_pillar.tscn` Label3D:
+  `font_size` 22 → 16, `outline_size` 3 → 2, added `width = 110` and
+  `autowrap_mode = 2` (`pixel_size = 0.005`, `billboard = 1`, `fixed_size = true`,
+  and both alignments unchanged). Both arena `StatusLabel` nodes
+  (AnimationPreviewZone, CombatRange) got the same font/width/autowrap treatment
+  at y = 2.2. Deleted the six `responsibility = "…"` lines from the arena
+  `ZonePillar` instances so each pillar renders title-only (script default `""`
+  takes over; `zone_pillar.gd` untouched). `scenes/actors/target_dummy.tscn`
+  `QuadMesh_bar.size` `Vector2(2, 0.2)` → `Vector2(2, 0.3)` (shared sub-resource,
+  so Background and Fill both thicken; `center_offset` and materials unchanged).
+  No lighting/camera/script changes.
+- Gates: `gdlint .` 0 problems; headless editor plus `scenes/act/arena.tscn`,
+  `scenes/actors/target_dummy.tscn`, and `scenes/boot.tscn` all clean (no
+  `ERROR:` / `SCRIPT ERROR` / `Parse Error` / `Failed loading`). No `.import`
+  noise was produced, so nothing needed reverting.
