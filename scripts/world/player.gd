@@ -15,6 +15,14 @@ const PLAYER_CONFIG: PlayerConfig = preload("res://resources/player_config.tres"
 ## Facing sign driven by the last non-zero X input: +1 right, -1 left.
 var facing: int = 1
 
+## Combat-set lock: while true, movement input is ignored and horizontal
+## velocity decays toward zero (attack_1/2/3, attack_air).
+var movement_locked: bool = false
+
+## Combat-set override: while non-zero, this is the horizontal velocity
+## (dodge carries its own movement); gravity still runs.
+var movement_override: Vector2 = Vector2.ZERO
+
 var _jump_buffer_timer: float = 0.0
 var _jump_cut_applied: bool = false
 var _was_on_floor: bool = true
@@ -55,6 +63,18 @@ func _read_movement_input() -> Vector2:
 
 
 func _apply_horizontal_velocity(direction: Vector2, delta: float) -> void:
+	# Dodge carries its own displacement: the override wins outright so input and
+	# friction never fight the dodge impulse (design.md §6).
+	if movement_override != Vector2.ZERO:
+		velocity.x = movement_override.x
+		velocity.z = movement_override.y
+		return
+	# Attack lock: ignore input and decay horizontal velocity toward zero, so an
+	# attack slides to a smooth stop instead of snapping (design.md §6).
+	if movement_locked:
+		velocity.x = move_toward(velocity.x, 0.0, PLAYER_CONFIG.friction * delta)
+		velocity.z = move_toward(velocity.z, 0.0, PLAYER_CONFIG.friction * delta)
+		return
 	if direction != Vector2.ZERO:
 		var target: Vector2 = direction * PLAYER_CONFIG.move_speed
 		velocity.x = move_toward(velocity.x, target.x, PLAYER_CONFIG.acceleration * delta)
