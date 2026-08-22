@@ -2,19 +2,19 @@ feature: act-player-foundation
 artifacts:
   - path: scenes/actors/player.tscn
     type: scene
-    role: side-view player character (CharacterBody3D on the X–Y play plane, billboarded AnimatedSprite3D)
+    role: side-view player character (CharacterBody3D walking on X and Z with jump on Y, billboarded AnimatedSprite3D)
     invariants:
       - collision layer 2 (player) / mask 1 (world)
-      - Z pinned to the play plane; movement + jump feel driven by PlayerConfig
+      - XZ walking (move_up/move_down drive depth) + jump feel driven by PlayerConfig
       - billboarded AnimatedSprite3D driven by the composable animator
     validation: godot --headless --path . --quit-after 5 scenes/actors/player.tscn
   - path: scenes/act/arena.tscn
     type: scene
-    role: standalone ACT test arena (lit ground + two steps + player + side-view camera)
+    role: standalone ACT test arena (lit 3D walkable floor + steps at distinct Z + player + side-view camera)
     invariants:
       - WorldEnvironment + DirectionalLight3D carry lighting
-      - flat ground (top Y=0) + two steps (tops ≈ 0.5 / 1.0); world = layer 1, player = layer 2
-      - player spawned at Z=0; camera is a fixed side view (X-follow, Y≈1.2, Z=10, horizontal forward)
+      - 3D walkable floor (top Y=0, X×Z depth) + two steps (tops ≈ 0.5 / 1.0) at distinct Z; world = layer 1, player = layer 2
+      - player spawned at Z=0 within the walkable range; camera is a fixed side view (X-follow, Y≈1.2, Z fixed behind the depth range, horizontal forward)
     validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
   - path: scripts/world/player_animator.gd
     type: script
@@ -25,9 +25,9 @@ artifacts:
     validation: godot --headless --editor --path . --quit-after 10
   - path: scripts/world/side_view_camera.gd
     type: script
-    role: arena side-view follow camera (X-follow smoothing, fixed Y and Z, horizontal forward)
+    role: arena side-view follow camera (X-follow smoothing, fixed Y and Z, horizontal forward; never follows Z)
     invariants:
-      - vertical_offset 1.2 / z_distance 10.0 (fixed Y and Z)
+      - vertical_offset 1.2 / z_distance fixed behind the walkable depth range (fixed Y and Z, never follows Z)
       - identity rotation (horizontal forward), perspective projection
     validation: godot --headless --editor --path . --quit-after 10
   - path: resources/player_config.tres

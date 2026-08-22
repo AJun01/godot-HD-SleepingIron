@@ -1,8 +1,11 @@
 extends Camera3D
 ## Side-view follow component: keeps this camera locked to a horizontal-forward
 ## side view while its X follows an @export target with framerate-independent
-## smoothing. Y and Z are pinned (waist-height and behind the play plane), so the
-## framing never drifts vertically or in depth. Mirrors camera_follow.gd's target/
+## smoothing. Y and Z are pinned (waist-height and behind the walkable depth
+## range), so the framing never drifts vertically or in depth. The camera never
+## follows Z: depth is expressed by the player's own Z position under the fixed
+## perspective camera (the Octopath depth cue), and following Z would zoom the
+## whole scene as the player walks in depth. Mirrors camera_follow.gd's target/
 ## target_path/follow_speed pattern but with side-view semantics (no look_at).
 
 ## Node the camera tracks. Wired in the scene via @export dependency injection.

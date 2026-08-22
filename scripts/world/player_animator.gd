@@ -72,7 +72,7 @@ func _desired_state() -> StringName:
 		if _land_pending:
 			_land_pending = false
 			return STATE_LAND
-		if player.velocity.x != 0.0:
+		if Vector2(player.velocity.x, player.velocity.z) != Vector2.ZERO:
 			return STATE_RUN
 		return STATE_IDLE
 	if player.velocity.y > 0.0:
