@@ -11,27 +11,27 @@ extends Area3D
 ## defensively like save_load_trigger.gd's player_path.
 @export var audio_player_path: NodePath = NodePath("AudioStreamPlayer")
 
-var _player: AudioStreamPlayer
+var _audio_player: AudioStreamPlayer
 
 
 func _ready() -> void:
-	_resolve_player()
+	_resolve_audio_player()
 	body_entered.connect(_on_body_entered)
 
 
-func _resolve_player() -> void:
+func _resolve_audio_player() -> void:
 	if audio_player_path.is_empty():
 		return
 	var resolved: Node = get_node_or_null(audio_player_path)
 	if resolved is AudioStreamPlayer:
-		_player = resolved
+		_audio_player = resolved
 
 
 func _on_body_entered(_body: Node3D) -> void:
-	if _player == null or stream == null:
+	if _audio_player == null or stream == null:
 		return
 	# Re-entering while the beep is still sounding must not restart it.
-	if _player.playing:
+	if _audio_player.playing:
 		return
-	_player.stream = stream
-	_player.play()
+	_audio_player.stream = stream
+	_audio_player.play()
