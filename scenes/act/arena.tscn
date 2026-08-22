@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_target_dummy.svg" id="4_dummy"]
 [ext_resource type="Texture2D" path="res://assets/ui/architecture_diagram.svg" id="5_wall"]
 [ext_resource type="Script" path="res://scripts/dev/save_load_trigger.gd" id="6_trigger"]
+[ext_resource type="Script" path="res://scripts/dev/animation_preview_zone.gd" id="7_anim_preview"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -86,6 +87,15 @@ size = Vector3(3, 2, 3)
 
 [sub_resource type="BoxMesh" id="BoxMesh_trigger_pad"]
 size = Vector3(3, 0.05, 3)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_next"]
+albedo_color = Color(0.6, 0.36, 0.72, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_flip"]
+albedo_color = Color(0.72, 0.55, 0.28, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_zone"]
+size = Vector3(18, 2, 14)
 
 [node name="Arena" type="Node3D"]
 
@@ -176,11 +186,60 @@ paths = PackedStringArray("res://scripts/world/player.gd", "res://scripts/config
 
 [node name="AnimationPreviewZone" type="Node3D" parent="Zones"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 0)
+script = ExtResource("7_anim_preview")
+player_path = NodePath("../../Player")
+animator_path = NodePath("../../Player/Animator")
 
 [node name="Pad" type="MeshInstance3D" parent="Zones/AnimationPreviewZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
 mesh = SubResource("BoxMesh_pad")
 material_override = SubResource("Material_pad_animation")
+
+[node name="StatusLabel" type="Label3D" parent="Zones/AnimationPreviewZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+billboard = 1
+fixed_size = true
+pixel_size = 0.005
+font_size = 48
+outline_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NextAnimPad" type="Area3D" parent="Zones/AnimationPreviewZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+collision_layer = 3
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/AnimationPreviewZone/NextAnimPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AnimationPreviewZone/NextAnimPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_next")
+
+[node name="FlipFacingPad" type="Area3D" parent="Zones/AnimationPreviewZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+collision_layer = 3
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/AnimationPreviewZone/FlipFacingPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AnimationPreviewZone/FlipFacingPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_flip")
+
+[node name="ZoneBoundary" type="Area3D" parent="Zones/AnimationPreviewZone"]
+collision_layer = 3
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/AnimationPreviewZone/ZoneBoundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_zone")
 
 [node name="ZonePillar" parent="Zones/AnimationPreviewZone" instance=ExtResource("3_pillar")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)

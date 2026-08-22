@@ -52,3 +52,17 @@ artifacts:
       - explicit collision layer 3 / mask 2 (no defaults)
       - @export DI + defensive player_path resolution; restore deferred from body_entered
     validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scripts/dev/animation_preview_zone.gd
+    type: script
+    role: composable animation-preview zone controller (Node3D) that cycles the 12 player animations via a next-animation pad, toggles facing via a flip pad, shows the current animation on a status Label3D, and stops the preview when the player leaves the zone
+    invariants:
+      - static typing, @export dependency injection, no get_node("../..")
+      - pads on interaction layer 3 / mask 2 (no defaults); body_entered/body_exited mutations deferred
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scripts/world/player_animator.gd
+    type: script
+    role: composable five-state animator extended with a preview mode (play_preview/stop_preview) that forces one of the 12 SpriteFrames animations past the physics-derived mapping
+    invariants:
+      - static typing; preview preserves the facing flip and resumes auto-mapping on stop_preview
+      - one-way dependency preserved (animator reads player; player never references animator)
+    validation: godot --headless --editor --path . --quit-after 10

@@ -1,9 +1,12 @@
+class_name PlayerAnimator
 extends Node3D
 ## Composable five-state animation machine (idle/run/jump/fall/land) that reads
-## the player's physics state and drives a billboarded AnimatedSprite3D. One-way
-## dependency: the animator reads the player; the player never references the
-## animator (design.md). flip_h mirrors the right-facing sheet; the separate
-## left-facing sheet is never used.
+## the player's physics state and drives a billboarded AnimatedSprite3D. A
+## preview mode (play_preview/stop_preview) forces one of the 12 SpriteFrames
+## animations past the physics-derived mapping, for the arena animation-preview
+## zone. One-way dependency: the animator reads the player; the player never
+## references the animator (design.md). flip_h mirrors the right-facing sheet;
+## the separate left-facing sheet is never used.
 
 const STATE_IDLE: StringName = &"idle"
 const STATE_RUN: StringName = &"run"
@@ -34,6 +37,8 @@ const STATE_LAND: StringName = &"land"
 
 var _current_state: StringName = STATE_IDLE
 var _land_pending: bool = false
+## Forced animation while previewing; empty means preview mode is off.
+var _preview_animation: StringName = &""
 
 
 func _ready() -> void:
@@ -49,6 +54,10 @@ func _process(_delta: float) -> void:
 	if player == null or sprite == null:
 		return
 	sprite.flip_h = player.facing < 0
+	# Preview mode bypasses the physics-derived mapping entirely, so a forced
+	# animation is never overwritten by the next frame's state computation.
+	if not _preview_animation.is_empty():
+		return
 	# Hold the one-shot land animation until it finishes before remapping, so a
 	# landing never snaps back to idle after a single frame.
 	if _current_state == STATE_LAND:
@@ -98,11 +107,30 @@ func _apply_state(state: StringName) -> void:
 	sprite.play()
 
 
+func play_preview(animation: StringName) -> void:
+	_preview_animation = animation
+	_apply_state(animation)
+
+
+func stop_preview() -> void:
+	# Resuming is a no-op unless a preview was active, so an unrelated stop
+	# (e.g. a leave signal) never snaps a running animation back to idle.
+	if _preview_animation.is_empty():
+		return
+	_preview_animation = &""
+	_land_pending = false
+	_apply_state(STATE_IDLE)
+
+
 func _on_player_landed() -> void:
 	_land_pending = true
 
 
 func _on_animation_finished() -> void:
+	# A finished one-shot preview (e.g. land) must hold its last frame rather
+	# than snap back to idle; only the physics state machine completes land.
+	if not _preview_animation.is_empty():
+		return
 	# Land is the only state held until completion; return to idle and let the
 	# next frame's mapping switch to run if the player is already moving.
 	if _current_state == STATE_LAND:
