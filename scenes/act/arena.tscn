@@ -262,7 +262,7 @@ mesh = SubResource("BoxMesh_pad")
 material_override = SubResource("Material_pad_combat")
 
 [node name="StatusLabel" type="Label3D" parent="Zones/CombatRange"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, 0)
 billboard = 1
 fixed_size = true
 pixel_size = 0.005

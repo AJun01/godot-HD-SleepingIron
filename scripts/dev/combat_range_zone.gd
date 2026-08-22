@@ -7,10 +7,10 @@ extends Node3D
 ## dummies are injected via @export DI, matching animation_preview_zone.gd.
 
 ## Short hint shown while the zone is idle.
-const HINT_TEXT: String = "Attack the dummies (J). Step on the pad to reset."
+const HINT_TEXT: String = "Attack (J) · Pad resets"
 
 ## Confirmation shown after the reset pad restores all dummies.
-const RESET_TEXT: String = "Dummies reset to full HP."
+const RESET_TEXT: String = "Dummies reset!"
 
 ## Dummies this zone resets; wired in the arena scene via node paths.
 @export var dummies: Array[TargetDummy] = []

@@ -134,3 +134,17 @@ property changes.
 ## Commit (implementation)
 
 `fix(arena): 上移战斗区状态文本避开立柱标题与木桩血条并精简提示语`
+
+## Implementation log
+
+- Applied the fix exactly as specified. `scenes/act/arena.tscn` CombatRange
+  `StatusLabel` transform y 2.2 → 3.6 (x/z, billboard, fixed_size, pixel_size,
+  font_size 16, outline_size 2, width 110, autowrap_mode 2, and both alignments
+  unchanged). The AnimationPreviewZone `StatusLabel` stays at y = 2.2.
+  `scripts/dev/combat_range_zone.gd` `HINT_TEXT` → `"Attack (J) · Pad resets"` and
+  `RESET_TEXT` → `"Dummies reset!"` (both still `const X: String`; logic and
+  `_set_status()` untouched). No other zones, lighting, or camera changes.
+- Gates: `gdlint .` → 0 problems; headless editor and `scenes/act/arena.tscn` +
+  `scenes/boot.tscn` runs all clean (no `ERROR:` / `SCRIPT ERROR` / `Parse Error`
+  / `Failed loading`). No `.import` noise was produced, so nothing needed
+  reverting.
