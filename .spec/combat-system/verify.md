@@ -211,3 +211,60 @@ does not lock). These prose spots are deferred to the docs pass, per fix-001's
 ### Overall
 
 Status: PASS
+
+## Fix round 2 re-verification
+
+Re-verified fix-004 (arena text final pass, commit `dc8ea15`) against its
+acceptance criteria in the real files, then re-ran the full gate suite and
+regenerated the vision-pass screenshots.
+
+### Per-criteria verification
+
+- **zone_pillar.tscn Label3D** — `font_size = 16`, `outline_size = 2`,
+  `width = 110`, `autowrap_mode = 2` all present (`zone_pillar.tscn:13-16`);
+  `pixel_size = 0.005`, `billboard = 1`, `fixed_size = true`,
+  `horizontal_alignment = 1`, `vertical_alignment = 1` preserved.
+- **arena.tscn StatusLabels** — both `StatusLabel` nodes (AnimationPreviewZone
+  `:202-212`, CombatRange `:264-274`) carry `font_size = 16`, `outline_size = 2`,
+  `width = 110`, `autowrap_mode = 2` at transform y = 2.2, with
+  `pixel_size`/`billboard`/`fixed_size`/alignments preserved.
+- **arena.tscn six ZonePillar instances** — all six are title-only: each has
+  `title = "…"` and transform only, no `responsibility = "…"` line
+  (MovementZone `:187-189`, AnimationPreviewZone `:250-252`, CombatRange
+  `:302-304`, UiHudZone `:314-316`, SaveLoadZone `:359-361`, AudioZone
+  `:405-407`). `zone_pillar.gd` `_compose_text()` skips empty `responsibility`,
+  so each pillar renders one short line.
+- **target_dummy.tscn QuadMesh_bar** — `size = Vector2(2, 0.3)` (`:11`),
+  `center_offset = Vector3(1, 0, 0)` unchanged, `HealthBar` root y = 2.7
+  unchanged, both billboard materials unchanged; fill still scales `scale.x`
+  only (`target_dummy.gd:_update_health_bar`).
+- **Lighting/camera untouched** — `git show dc8ea15` diff touches only
+  `scenes/dev/zone_pillar.tscn`, `scenes/act/arena.tscn`,
+  `scenes/actors/target_dummy.tscn`, and the fix-004 markdown log; `Sun`,
+  `WorldEnvironment`, and `SideViewCamera` are byte-identical.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `/Users/aj/.local/bin/gdlint .` | `Success: no problems found` (0 problems) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/actors/target_dummy.tscn` | exit 0; error grep empty |
+
+Grep target set (`ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`) empty
+in every run. No `.import` noise was produced, so nothing needed reverting.
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_fix_screenshot.tscn` opened a Metal
+window (Apple M2 Pro) and saved two 3456×2104 viewport screenshots via a
+temporary driver (deleted afterwards):
+`/tmp/combat-fix-arena-1.png` (combat range: dummies + status label) and
+`/tmp/combat-fix-arena-2.png` (pillar overview). Final on-screen text legibility
+remains a vision-pass judgment for the human/vision model.
+
+### Overall
+
+Status: PASS
