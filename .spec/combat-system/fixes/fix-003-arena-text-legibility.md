@@ -101,4 +101,15 @@ Playtest: the training arena's text is too big and overlapping ("满屏的字互
 
 ## Implementation log
 
-<!-- Developer appends: what was done, gate results, any deviation. -->
+- Shrank the arena text per this fix: `scenes/dev/zone_pillar.tscn` Label3D
+  `font_size` 40 → 22 and `outline_size` 8 → 3 (`pixel_size = 0.005` unchanged);
+  both arena `StatusLabel` nodes (AnimationPreviewZone, CombatRange) `font_size`
+  48 → 22 and `outline_size` 8 → 3. Removed the six
+  `paths = PackedStringArray(...)` lines from the arena `ZonePillar` instances
+  so each pillar composes `title` + `responsibility` only. `zone_pillar.gd` left
+  untouched (design decision #2: the empty-array path is already handled, so
+  `paths` can be re-enabled later by re-adding it to the `.tscn` without a code
+  change). No per-frame scaling logic introduced.
+- Gates: `gdlint .` 0 problems; headless editor + `scenes/act/arena.tscn` +
+  `scenes/boot.tscn` all clean (no ERROR/SCRIPT ERROR/Parse Error/Failed
+  loading). No `.import` noise was produced, so nothing needed excluding.

@@ -188,7 +188,6 @@ material_override = SubResource("Material_step")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Movement / Jump"
 responsibility = "XZ movement, gravity, jump buffer and jump-cut feel"
-paths = PackedStringArray("res://scripts/world/player.gd", "res://scripts/config/player_config.gd", "res://resources/player_config.tres")
 
 [node name="AnimationPreviewZone" type="Node3D" parent="Zones"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 0)
@@ -206,8 +205,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 fixed_size = true
 pixel_size = 0.005
-font_size = 48
-outline_size = 8
+font_size = 22
+outline_size = 3
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -251,7 +250,6 @@ shape = SubResource("BoxShape_zone")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Animation Preview"
 responsibility = "Play each of the 12 player animations and flip facing"
-paths = PackedStringArray("res://scripts/world/player_animator.gd", "res://assets/sprites/player/player_frames.tres")
 
 [node name="CombatRange" type="Node3D" parent="Zones" node_paths=PackedStringArray("dummies")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 0)
@@ -268,8 +266,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 fixed_size = true
 pixel_size = 0.005
-font_size = 48
-outline_size = 8
+font_size = 22
+outline_size = 3
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -303,7 +301,6 @@ max_hp = 30.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Combat Range"
 responsibility = "Hittable target dummies: combo damage, hit-flash, health bars, death + auto-reset"
-paths = PackedStringArray("res://scripts/world/target_dummy.gd", "res://scripts/dev/combat_range_zone.gd", "res://scripts/world/hurtbox.gd")
 
 [node name="UiHudZone" type="Node3D" parent="Zones"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
@@ -317,7 +314,6 @@ material_override = SubResource("Material_pad_ui")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "UI / HUD"
 responsibility = "Show/hide the test health bar and dialogue box"
-paths = PackedStringArray("res://scripts/autoload/objective_hud.gd", "res://scripts/autoload/dialogue_service.gd")
 
 [node name="HealthTrigger" type="Area3D" parent="Zones/UiHudZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
@@ -364,7 +360,6 @@ material_override = SubResource("Material_pad_save")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Save / Load"
 responsibility = "Save and restore player position and facing"
-paths = PackedStringArray("res://scripts/autoload/save_service.gd", "res://scripts/dev/save_load_trigger.gd")
 
 [node name="SaveTrigger" type="Area3D" parent="Zones/SaveLoadZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
@@ -412,7 +407,6 @@ material_override = SubResource("Material_pad_audio")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Audio"
 responsibility = "Playback smoke tests via SFX trigger points (placeholder beeps)"
-paths = PackedStringArray("res://scripts/dev/sfx_trigger.gd", "res://assets/audio/placeholder_beep.wav", "res://assets/audio/placeholder_beep_high.wav")
 
 [node name="BeepLowPad" type="Area3D" parent="Zones/AudioZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
