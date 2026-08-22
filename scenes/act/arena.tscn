@@ -1,9 +1,10 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
 [ext_resource type="PackedScene" path="res://scenes/dev/zone_pillar.tscn" id="3_pillar"]
 [ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_target_dummy.svg" id="4_dummy"]
+[ext_resource type="Texture2D" path="res://assets/ui/architecture_diagram.svg" id="5_wall"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -69,6 +70,13 @@ size = Vector3(18, 0.25, 3)
 [sub_resource type="BoxShape3D" id="BoxShape_dummy"]
 size = Vector3(0.7, 2.2, 0.5)
 
+[sub_resource type="PlaneMesh" id="PlaneMesh_wall"]
+size = Vector2(16, 9)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+shading_mode = 0
+albedo_texture = ExtResource("5_wall")
+
 [node name="Arena" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -91,6 +99,12 @@ shape = SubResource("BoxShape_ground")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 mesh = SubResource("BoxMesh_ground")
 material_override = SubResource("Material_ground")
+
+[node name="ArchitectureWall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -7.5)
+mesh = SubResource("PlaneMesh_wall")
+material_override = SubResource("Material_wall")
+cast_shadow = 0
 
 [node name="Zones" type="Node3D" parent="."]
 
