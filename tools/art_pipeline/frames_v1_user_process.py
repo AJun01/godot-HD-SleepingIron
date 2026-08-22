@@ -5,11 +5,13 @@ frames-v1 user-crop frame pipeline → Godot SpriteFrames.
 Vendored from the user's hand-tuned `/tmp/frames_v1_user_process.py`
 (checkerboard matting + label/divider/ground-line cleanup + 256px resize +
 12-action classification + right/mirrored-left sheet composition) and improved
-for fix-002 with two additions:
+for fix-002 / fix-004b with three additions:
 
 - **despeckle** — after matting and after the 256×256 resize, removes small
   near-black specks floating in transparency (matting leftovers), while
   preserving dark details enclosed inside the silhouette.
+- **salt-and-pepper despeckle** — after `despeckle`, erodes specks attached to
+  the silhouette via anti-aliased bridges pixel-by-pixel (fix-004b).
 - **idle-collapse** — the idle row is temporarily collapsed to a single
   duplicated frame (the user will supply new idle art later).
 
@@ -294,6 +296,66 @@ def despeckle(img: Image.Image) -> tuple[Image.Image, int]:
     return Image.fromarray(a, "RGBA"), removed
 
 
+def _transparent_neighbor_count(alpha: np.ndarray) -> np.ndarray:
+    """Count, per pixel, how many of its 8 neighbors are transparent (alpha == 0)."""
+    transparent = alpha == 0
+    count = np.zeros(alpha.shape, dtype=np.uint8)
+    for dy, dx in (
+        (-1, -1), (-1, 0), (-1, 1),
+        (0, -1), (0, 1),
+        (1, -1), (1, 0), (1, 1),
+    ):
+        sh = np.roll(transparent, (dy, dx), axis=(0, 1))
+        # Zero the wrapped border after each shift so edges do not wrap around,
+        # mirroring the 1px-erosion edge handling in clean_frame().
+        if dy == 1:
+            sh[0, :] = False
+        if dy == -1:
+            sh[-1, :] = False
+        if dx == 1:
+            sh[:, 0] = False
+        if dx == -1:
+            sh[:, -1] = False
+        count += sh
+    return count
+
+
+def despeckle_salt_pepper(img: Image.Image) -> tuple[Image.Image, int, int]:
+    """
+    Remove attached salt-and-pepper specks pixel-by-pixel (fix-004b).
+
+    despeckle() only clears *isolated* near-black components, so it misses specks
+    attached to the silhouette via anti-aliased bridges: those are part of the
+    main component and never match area<25 / perimeter_transparent_fraction>=0.5.
+    This pass erodes them one pixel at a time: every opaque pixel (alpha > 0)
+    with Rec.601 luminance < 100 and more than 5 of its 8 neighbors transparent
+    (alpha == 0) is cleared (alpha = 0, RGB = 0).
+
+    Iterated 3 times, recomputing opacity each pass, so AA bridges erode first
+    and the now-detached speck pixels follow. Outline pixels survive because
+    several interior neighbors are opaque (<= 5 transparent); enclosed dark
+    details (eyes) have ~0 transparent neighbors and survive; attached specks
+    and their AA bridges have 6-8 transparent neighbors and are removed.
+
+    Returns (cleaned image, pixels removed across all sweeps, residual
+    matching-pixel count after the final sweep — should be 0).
+    """
+    a = np.array(img.convert("RGBA"))
+    alpha = a[:, :, 3]
+    removed = 0
+    for _ in range(3):
+        count = _transparent_neighbor_count(alpha)
+        lum = 0.299 * a[:, :, 0] + 0.587 * a[:, :, 1] + 0.114 * a[:, :, 2]
+        remove = (alpha > 0) & (lum < 100) & (count > 5)
+        removed += int(remove.sum())
+        alpha[remove] = 0
+        a[remove, :3] = 0
+    count = _transparent_neighbor_count(alpha)
+    lum = 0.299 * a[:, :, 0] + 0.587 * a[:, :, 1] + 0.114 * a[:, :, 2]
+    residual = int(((alpha > 0) & (lum < 100) & (count > 5)).sum())
+    return Image.fromarray(a, "RGBA"), removed, residual
+
+
 def _pin_uid(tres_text: str, uid: str) -> str:
     """Replace the generated random resource uid with the pinned one."""
     return re.sub(r'uid="uid://[0-9a-z]+"', f'uid="{uid}"', tres_text, count=1)
@@ -357,6 +419,9 @@ def main(argv: list[str] | None = None) -> int:
     all_frames: dict[str, list[Image.Image]] = {name: [] for name in MAP}
     stats: list[tuple[str, float]] = []
     total_removed = 0
+    sp_total = 0
+    sp_by_action: dict[str, int] = {name: 0 for name in MAP}
+    sp_residual_total = 0
 
     for folder, actions in FOLDERS:
         folder_dir = src / folder
@@ -371,16 +436,28 @@ def main(argv: list[str] | None = None) -> int:
             clean = clean_frame(Image.open(fp), palette)
             clean256 = clean.resize((CELL, CELL), Image.Resampling.NEAREST)
             despeckled, removed = despeckle(clean256)
+            despeckled, sp_removed, sp_residual = despeckle_salt_pepper(despeckled)
             all_frames[action].append(despeckled)
             total_removed += removed
+            sp_total += sp_removed
+            sp_by_action[action] += sp_removed
+            sp_residual_total += sp_residual
             if removed:
                 print(f"  despeckle {action}_{len(all_frames[action]) - 1:03d}: removed {removed} component(s)")
+            print(f"  salt-pepper {action}_{len(all_frames[action]) - 1:03d}: removed {sp_removed} px, residual {sp_residual}")
             arr = np.array(clean)
             stats.append((action, float((arr[:, :, 3] == 0).mean())))
 
     bad = [(a, p) for a, p in stats if p < 0.10]
     print("cells <10% transparent:", bad if bad else "none")
     print(f"despeckle total removed components: {total_removed}")
+    print("salt-pepper per-action removal (px):")
+    for name in MAP:
+        print(f"  {name}: {sp_by_action[name]}")
+    print(f"salt-pepper total removed px: {sp_total}")
+    if sp_residual_total:
+        _fail(f"salt-pepper residual pixels after final sweep: {sp_residual_total} (expected 0)")
+    print("salt-pepper residual pixels after final sweep: 0")
 
     # Idle collapse (fix-002): the idle row is temporarily a single duplicated
     # frame until the user supplies new idle art.

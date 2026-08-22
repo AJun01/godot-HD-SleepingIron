@@ -70,4 +70,5 @@ artifacts:
     invariants:
       - idle_000..idle_005 are byte-identical (temporary single-frame idle collapse)
       - despeckled: no isolated near-black components matching area<25 and perimeter_transparent_fraction>=0.5
+      - salt-and-pepper despeckled: no opaque pixel with Rec.601 luminance<100 and >5 transparent 8-neighbors (3 sweeps, 0 residual)
     validation: godot --headless --editor --path . --quit-after 10
