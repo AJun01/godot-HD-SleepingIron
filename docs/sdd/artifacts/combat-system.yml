@@ -1,0 +1,129 @@
+feature: combat-system
+artifacts:
+  - path: project.godot
+    type: config
+    role: input-map entries attack (J / joypad button 2) and dodge (K / joypad button 1) plus the hitbox/hurtbox physics layer names; closes the minimal combat loop's input and collision metadata
+    invariants:
+      - attack = physical key 74 (J) + joypad button 2; dodge = physical key 75 (K) + joypad button 1
+      - layer 4 named "hitbox" and layer 5 named "hurtbox"; layers 1/2/3 (world/player/interaction) never repurposed
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/config/hit_window.gd
+    type: script
+    role: HitWindow Resource (class_name HitWindow extends Resource) holding a per-attack active frame interval plus damage and knockback
+    invariants:
+      - static typing; every field @export (rule 4)
+      - start_frame/end_frame are the single source of truth for the wind_up/active/recovery phase boundaries
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/config/combat_config.gd
+    type: script
+    role: CombatConfig Resource (class_name CombatConfig extends Resource) holding player-side tunables plus the four per-attack HitWindow references
+    invariants:
+      - static typing; every gameplay value @export (rule 4), no hardcoded values
+      - exposes exactly the four HitWindow refs attack_1/2/3_window + attack_air_window
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/combat_config.tres
+    type: resource
+    role: single CombatConfig instance (input buffer 0.15s, chain timeout 0.4s, cancel threshold 0.6, dodge 12.0/0.3/0.5, hit box 1.0x1.6x0.8 at +0.7 x offset) wiring all four HitWindow refs
+    invariants:
+      - one instance preloaded by player_animator.gd and player_combat.gd as COMBAT_CONFIG
+      - all four hit_windows/*.tres referenced with no orphan or broken ext_resource
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/hit_windows/attack_1.tres
+    type: resource
+    role: attack_1 HitWindow instance (start_frame 2, end_frame 3, damage 35, knockback zero)
+    invariants:
+      - frame interval [2, 3] inclusive; damage 35.0; knockback Vector3.ZERO
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/hit_windows/attack_2.tres
+    type: resource
+    role: attack_2 HitWindow instance (start_frame 2, end_frame 3, damage 40, knockback zero)
+    invariants:
+      - frame interval [2, 3] inclusive; damage 40.0; knockback Vector3.ZERO
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/hit_windows/attack_3.tres
+    type: resource
+    role: attack_3 HitWindow instance (start_frame 2, end_frame 3, damage 50, knockback zero)
+    invariants:
+      - frame interval [2, 3] inclusive; damage 50.0; knockback Vector3.ZERO
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: resources/hit_windows/attack_air.tres
+    type: resource
+    role: attack_air HitWindow instance (start_frame 2, end_frame 3, damage 40, knockback zero)
+    invariants:
+      - frame interval [2, 3] inclusive; damage 40.0; knockback Vector3.ZERO
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/world/player_animator.gd
+    type: script
+    role: animation layer extended additively with seven combat states (attack_1/2/3, attack_air, hit, dodge, death) plus per-frame wind_up/active/recovery phase tracking and phase/state signals
+    invariants:
+      - static typing; one-way dependency (reads player; player never references animator)
+      - existing five-state mapping + preview mode unchanged; phase computed from sprite.frame vs HitWindow interval
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/world/player.gd
+    type: script
+    role: player physics body gained only the two-field public movement-lock interface (movement_locked, movement_override) for combat to write
+    invariants:
+      - static typing; fields default false / Vector2.ZERO so pre-combat movement is unchanged
+      - no reverse references into animator or combat component
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/world/player_combat.gd
+    type: script
+    role: PlayerCombat logic layer owning the attack/dodge input buffer (single slot), ground combo progression, hit-window evaluation against the hit Area3D, and dodge displacement/invincibility/cooldown
+    invariants:
+      - static typing; @export DI + defensive NodePath fallbacks
+      - one-way: reads animator state/phase/frame progress, writes only the player's public lock fields; no get_node("../..")
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/world/hurtbox.gd
+    type: script
+    role: thin Hurtbox damage receiver (class_name Hurtbox extends Area3D) that re-emits incoming hits as a typed hit_received(damage, knockback) signal
+    invariants:
+      - static typing; no dependency on TargetDummy or PlayerCombat (forwarder only, not a Damageable framework)
+      - typed signal keeps the hitbox -> hurtbox -> target coupling one-way
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/world/target_dummy.gd
+    type: script
+    role: self-contained hittable TargetDummy (class_name TargetDummy extends StaticBody3D) with hit-flash, billboard health bar, death, and 2s auto-reset
+    invariants:
+      - static typing; tunables (max_hp, reset_delay, hit_flash_duration, hit_flash_color) all @export
+      - knockback accepted but ignored (static body); hit feedback applied via call_deferred
+      - reset() restores full HP, modulate, health bar, and re-enables the hurtbox
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scripts/dev/combat_range_zone.gd
+    type: script
+    role: composable combat-range zone controller binding the three dummies to a reset pad and reporting reset status on a billboarded Label3D
+    invariants:
+      - static typing; @export DI + NodePath fallbacks; reset pad on interaction layer 3 / mask 2
+      - dummy mutation from body_entered deferred via call_deferred
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scenes/actors/player.tscn
+    type: scene
+    role: player scene wired with the Animator component, the Combat component, and its persistent HitArea hit box
+    invariants:
+      - player body collision layer 2 / mask 1; HitArea Area3D layer 4 / mask 5
+      - node names Player/Animator/Combat/Combat/HitArea used by the scripts' @export NodePath fallbacks
+      - layers 1/2/3 never repurposed
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scenes/actors/target_dummy.tscn
+    type: scene
+    role: hittable target dummy scene (StaticBody3D + Sprite3D + Hurtbox + billboard health bar) instanced three times by the arena
+    invariants:
+      - StaticBody3D body collision layer 1 / mask 2 with BoxShape3D 0.7x2.2x0.5 at y +1.1
+      - Hurtbox Area3D layer 5 / mask 4 with a box matching the body
+      - billboard health bar built from two quads (fill scale.x tracks hp/max_hp); no numbers baked into art
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scenes/act/arena.tscn
+    type: scene
+    role: arena rewired so the CombatRange's three inert dummies become hittable TargetDummy instances with a combat-range reset controller
+    invariants:
+      - three dummies keep positions x = -5 / 0 / 5, z = -2 with max_hp 100 / 60 / 30
+      - CombatRange zone ResetPad on interaction layer 3 / mask 2; ZonePillar responsibility text updated to the hittable-dummy description
+      - WorldEnvironment + DirectionalLight3D lighting and all other zones unchanged
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: assets/placeholders/placeholder_target_dummy.svg
+    type: sprite
+    role: reused combat-range target dummy placeholder (flat humanoid silhouette + target ring + text label), base art for the hittable dummy
+    status: placeholder
+    invariants:
+      - source aspect ratio preserved; nearest-neighbor filtering
+      - transparent background so the billboarded dummy stands on the ground
+    validation: godot --headless --editor --path . --quit-after 10
