@@ -13,6 +13,10 @@ const MODE_DIALOGUE: StringName = &"dialogue"
 ## Which smoke test this pad drives.
 @export var mode: StringName = MODE_HEALTH
 
+## Health-bar max/current for MODE_HEALTH; 100/72 render the unchanged smoke bar.
+@export var test_health_max: float = 100.0
+@export var test_health_value: float = 72.0
+
 ## Dialogue beat played in MODE_DIALOGUE. Wired in the scene to hub_test.tres.
 @export var dialogue: DialogueData
 
@@ -24,7 +28,7 @@ func _ready() -> void:
 
 func _on_body_entered(_body: Node3D) -> void:
 	if mode == MODE_HEALTH:
-		ObjectiveHud.show_test_health_bar()
+		ObjectiveHud.show_test_health_bar(test_health_max, test_health_value)
 		return
 	_play_dialogue()
 
