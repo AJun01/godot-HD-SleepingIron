@@ -25,6 +25,13 @@ const STATE_LAND: StringName = &"land"
 ## Fallback path for the sprite, mirroring player_path.
 @export var sprite_path: NodePath = NodePath("../AnimatedSprite3D")
 
+## Downward velocity (m/s) below which the animator switches from jump to fall
+## while airborne. Hysteresis threshold: near the jump apex velocity.y
+## oscillates around zero, so switching at exactly 0.0 flaps jump<->fall every
+## frame; this negative threshold keeps "jump" until the body is truly
+## descending.
+@export var jump_fall_threshold: float = -0.5
+
 var _current_state: StringName = STATE_IDLE
 var _land_pending: bool = false
 
@@ -75,7 +82,12 @@ func _desired_state() -> StringName:
 		if Vector2(player.velocity.x, player.velocity.z) != Vector2.ZERO:
 			return STATE_RUN
 		return STATE_IDLE
-	if player.velocity.y > 0.0:
+	# Hysteresis on the jump->fall edge: once JUMP, hold JUMP until velocity.y
+	# drops below jump_fall_threshold, so apex oscillation around zero does not
+	# flap between jump and fall every frame.
+	if _current_state == STATE_JUMP and player.velocity.y < jump_fall_threshold:
+		return STATE_FALL
+	if _current_state == STATE_JUMP or player.velocity.y > 0.0:
 		return STATE_JUMP
 	return STATE_FALL
 
