@@ -167,3 +167,19 @@ center. The bar stays centered at every HP value.
 ## Commit (implementation)
 
 `fix(arena): 战斗区状态文本对齐立柱深度平面并居中木桩血条`
+
+## Implementation log
+
+- Applied the fix exactly as specified. `scenes/act/arena.tscn` CombatRange
+  `StatusLabel` transform `(0, 3.6, 0)` → `(0, 4.2, -7)` (now on the pillar depth
+  plane, z = -7; billboard, fixed_size, pixel_size 0.005, font_size 16,
+  outline_size 2, width 110, autowrap_mode 2, and both alignments unchanged).
+  `scenes/actors/target_dummy.tscn` shared `QuadMesh_bar` sub-resource
+  `center_offset = Vector3(1, 0, 0)` → `Vector3(0, 0, 0)` (single sub-resource
+  edit re-centers both Background and Fill). No scripts, other nodes, lighting,
+  or camera touched.
+- Gates: `gdlint .` → 0 problems; headless editor run clean; `scenes/act/arena.tscn`,
+  `scenes/actors/target_dummy.tscn`, and `scenes/boot.tscn` runs all clean (no
+  `ERROR:` / `SCRIPT ERROR` / `Parse Error` / `Failed loading`). No `.import`
+  noise was produced (the three flagged `.import` files stayed unmodified), so
+  nothing needed reverting.
