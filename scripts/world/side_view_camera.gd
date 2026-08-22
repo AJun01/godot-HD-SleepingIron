@@ -1,9 +1,10 @@
 extends Camera3D
-## Side-view follow component: keeps this camera locked to a horizontal-forward
-## side view while its X follows an @export target with framerate-independent
-## smoothing. Y and Z are pinned (waist-height and behind the walkable depth
-## range), so the framing never drifts vertically or in depth. The camera never
-## follows Z: depth is expressed by the player's own Z position under the fixed
+## Side-view follow component: keeps this camera locked to a constant elevated
+## DNF-style side view, pitched downward at the action, while its X follows an
+## @export target with framerate-independent smoothing. Y and Z are pinned
+## (elevated above the play plane and behind the walkable depth range), so the
+## framing never drifts vertically or in depth. The camera never follows Z:
+## depth is expressed by the player's own Z position under the fixed
 ## perspective camera (the Octopath depth cue), and following Z would zoom the
 ## whole scene as the player walks in depth. Mirrors camera_follow.gd's target/
 ## target_path/follow_speed pattern but with side-view semantics (no look_at).
@@ -15,14 +16,20 @@ extends Camera3D
 ## not resolve (same defensive pattern as camera_follow.gd).
 @export var target_path: NodePath = NodePath("../Player")
 
-## Fixed camera height in world space (waist-height side view).
-@export var vertical_offset: float = 1.2
+## Fixed camera height in world space (elevated DNF-style side view, looking
+## down at the action).
+@export var vertical_offset: float = 5.5
 
 ## Fixed camera depth behind the play plane (Z=0), in world space.
 @export var z_distance: float = 10.0
 
 ## Follow speed; higher values track more tightly (per-second exponential rate).
 @export var follow_speed: float = 6.0
+
+## Downward pitch of the camera in degrees (negative = look down). DNF-style
+## elevated side view: the camera sits high above the play plane and tilts
+## down at the action instead of shooting horizontally at waist height.
+@export var pitch_degrees: float = -25.0
 
 
 func _ready() -> void:
@@ -42,5 +49,6 @@ func _physics_process(delta: float) -> void:
 	var weight: float = 1.0 - exp(-follow_speed * delta)
 	var smoothed_x: float = lerpf(global_position.x, target.global_position.x, weight)
 	global_position = Vector3(smoothed_x, vertical_offset, z_distance)
-	# Rotation is never touched: the camera keeps identity rotation and looks
-	# horizontally forward (-Z) rather than top-down at the target.
+	rotation = Vector3(deg_to_rad(pitch_degrees), 0.0, 0.0)
+	# Rotation is a constant DNF-style downward pitch, not a per-frame look_at:
+	# the camera stays locked in a side view tilted down at the action.
