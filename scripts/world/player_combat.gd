@@ -243,12 +243,13 @@ func _start_ground_attack() -> void:
 
 
 func _start_air_attack() -> void:
-	# The air attack is standalone: it abandons any combo and locks movement;
-	# gravity still runs in player.gd so the strike falls with the body (§5.3).
+	# The air attack is standalone: it abandons any combo and does NOT lock
+	# movement, so the player keeps full air-movement input and horizontal
+	# momentum while the strike plays; gravity still runs in player.gd so the
+	# strike falls with the body (§5.3).
 	combo_step = 0
 	chain_timer = 0.0
 	animator.play_combat_state(PlayerAnimator.STATE_ATTACK_AIR)
-	_lock_movement()
 
 
 func _advance_combo(state: StringName) -> void:

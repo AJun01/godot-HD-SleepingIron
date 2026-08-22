@@ -104,4 +104,12 @@ so simply not locking is correct and complete.
 
 ## Implementation log
 
-<!-- Developer appends: what was done, gate results, any deviation. -->
+- Removed `_lock_movement()` from `_start_air_attack()` and updated its
+  doc-comment: the air attack no longer locks movement, keeping full air input +
+  horizontal momentum; gravity unchanged. `_update_combo_chain()`'s
+  `movement_locked = false` unlock line left as-is (correct for the remaining
+  ground-attack locked states; harmless no-op for the air case).
+- Gates passed: `gdlint .` → 0 problems; `godot --headless --editor --path .
+  --quit-after 10`, `... scenes/act/arena.tscn`, `... scenes/boot.tscn` → no
+  `ERROR:` / `SCRIPT ERROR` / `Parse Error` / `Failed loading`. No `.import`
+  noise produced this run (working tree contained only the fix file).
