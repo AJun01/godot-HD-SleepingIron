@@ -22,6 +22,7 @@ SceneRouter="*res://scripts/autoload/scene_router.gd"
 GameFlow="*res://scripts/autoload/game_flow.gd"
 DialogueService="*res://scripts/autoload/dialogue_service.gd"
 ObjectiveHud="*res://scripts/autoload/objective_hud.gd"
+SaveService="*res://scripts/autoload/save_service.gd"
 
 [display]
 

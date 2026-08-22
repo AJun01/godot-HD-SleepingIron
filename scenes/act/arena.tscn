@@ -1,10 +1,11 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
 [ext_resource type="PackedScene" path="res://scenes/dev/zone_pillar.tscn" id="3_pillar"]
 [ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_target_dummy.svg" id="4_dummy"]
 [ext_resource type="Texture2D" path="res://assets/ui/architecture_diagram.svg" id="5_wall"]
+[ext_resource type="Script" path="res://scripts/dev/save_load_trigger.gd" id="6_trigger"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -76,6 +77,15 @@ size = Vector2(16, 9)
 [sub_resource type="StandardMaterial3D" id="Material_wall"]
 shading_mode = 0
 albedo_texture = ExtResource("5_wall")
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_restore"]
+albedo_color = Color(0.55, 0.5, 0.2, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_trigger"]
+size = Vector3(3, 2, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_trigger_pad"]
+size = Vector3(3, 0.05, 3)
 
 [node name="Arena" type="Node3D"]
 
@@ -264,6 +274,40 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Save / Load"
 responsibility = "Save and restore player position and facing"
 paths = PackedStringArray("res://scripts/autoload/save_service.gd", "res://scripts/dev/save_load_trigger.gd")
+
+[node name="SaveTrigger" type="Area3D" parent="Zones/SaveLoadZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("6_trigger")
+save_mode = true
+player_path = NodePath("../../../Player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/SaveLoadZone/SaveTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/SaveLoadZone/SaveTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_save")
+
+[node name="RestoreTrigger" type="Area3D" parent="Zones/SaveLoadZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("6_trigger")
+save_mode = false
+player_path = NodePath("../../../Player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/SaveLoadZone/RestoreTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/SaveLoadZone/RestoreTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_restore")
 
 [node name="AudioZone" type="Node3D" parent="Zones"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 0)
