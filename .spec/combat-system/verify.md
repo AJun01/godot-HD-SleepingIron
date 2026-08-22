@@ -157,3 +157,57 @@ Ran a temporary scene `res://_verify_probe.tscn` (deleted afterwards) via
 
 - Target branch: master
 - PR opened: yes (see session report)
+
+## Fix round 1 re-verification
+
+Re-verified the three post-review fixes (fix-001/002/003) against their
+acceptance criteria after the fix commits landed on `feature/combat-system`.
+
+### Per-fix verdicts
+
+- **fix-001 (air attack mobility): PASS** — `_start_air_attack()` no longer calls
+  `_lock_movement()` (`player_combat.gd:245-252`); `_start_ground_attack()` and
+  `_advance_combo()` still lock (`:242`, `:264`); dodge `movement_override`
+  still wins in `_apply_horizontal_velocity` (`player.gd:117`).
+- **fix-002 (walk/run two-tier): PASS** — `PlayerConfig` adds `walk_speed=3.5`
+  and `double_tap_window=0.25` (`player_config.gd`, `player_config.tres`);
+  `player.gd` has echo-filtered per-direction double-tap tracking, run reset on
+  zero input, tier-aware target speed, and lock/override branch order preserved.
+- **fix-003 (arena text legibility): PASS** — `zone_pillar.tscn` Label3D 22/3;
+  both `arena.tscn` StatusLabels 22/3; six pillar `paths` lines removed (title +
+  responsibility only); dummy `HealthBar` (mesh quads, no text) untouched.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `gdlint .` | 0 problems (`Success: no problems found`) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+
+### Functional probe
+
+Temporary headless probe (`res://_verify_fix_probe.tscn`, deleted afterwards):
+**30/30 PASS, 0 FAIL**. Verified PlayerConfig values (walk 3.5 / run 7.0 /
+window 0.25 + preserved defaults), ground attack locks vs air attack does not,
+dodge override beats lock, locked velocity decay, walk→run→walk target-speed
+transitions, per-direction and opposite-direction double-tap, and echo filtering.
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_screenshot.tscn` opened a Metal window
+(Apple M2 Pro) and saved two 3456×2104 viewport screenshots:
+`/tmp/combat-fix-arena-1.png` (CombatRange dummies + status label) and
+`/tmp/combat-fix-arena-2.png` (CombatRange pillar). Temporary scripts deleted.
+
+### Residual note (non-blocking, docs pass)
+
+`design.md` §3.4/§5.3/§6 and the `player.gd` `movement_locked` doc-comment still
+list `attack_air` as a locking state; the runtime behavior is correct (air attack
+does not lock). These prose spots are deferred to the docs pass, per fix-001's
+"Design reference updates" note.
+
+### Overall
+
+Status: PASS
