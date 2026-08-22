@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("1")
 move_speed = 7.0
+walk_speed = 3.5
+double_tap_window = 0.25
 acceleration = 60.0
 friction = 70.0
 gravity = 22.0

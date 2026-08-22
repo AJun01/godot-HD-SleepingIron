@@ -195,4 +195,14 @@ if direction != Vector2.ZERO:
 
 ## Implementation log
 
-<!-- Developer appends: what was done, gate results, any deviation. -->
+- Implemented DNF-style walk/run two-tier movement per this fix. Added
+  `walk_speed = 3.5` + `double_tap_window = 0.25` to `PlayerConfig` and
+  `resources/player_config.tres`; `move_speed = 7.0` remains the RUN tier.
+  `player.gd` gains echo-filtered per-direction double-tap tracking in
+  `_unhandled_input`, resets run on zero input in `_physics_process`, and a
+  tier-aware target speed in `_apply_horizontal_velocity` (combat lock / dodge
+  override branches kept first and unchanged). No walk animation asset exists,
+  so the run sprite is reused for both tiers (`player_animator.gd` untouched).
+- Gates: `gdlint .` 0 problems; headless editor + `scenes/act/arena.tscn` +
+  `scenes/boot.tscn` all clean (no ERROR/SCRIPT ERROR/Parse Error/Failed
+  loading). No `.import` noise was produced, so nothing needed excluding.
