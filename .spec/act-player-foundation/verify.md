@@ -46,6 +46,17 @@ PASS
 - [x] Registry registers regenerated sprite assets + marks idle row as temporary single-frame collapse — registry lines 40-73
 - [x] Vision QC not self-certified by developer; deferred to (and passed by) Orchestrator
 
+### fix-003 — Jump/fall hysteresis (commit `7f1ac58`)
+- [x] REGRESSION (apex flap): airborne state latched — `scripts/world/player_animator.gd:88-92`: once `_current_state == STATE_JUMP` it returns JUMP until `player.velocity.y < jump_fall_threshold` (then FALL); the lone remaining `velocity.y > 0.0` is OR'd with the JUMP latch, so no zero-crossing flap can occur; FALL is entered only below the threshold and stays sticky (no mid-air upward impulse)
+- [x] `jump_fall_threshold` is a statically-typed `@export var` with default `-0.5` and a "why" docstring — `player_animator.gd:28-33` (AGENTS.md rules #1 + #4)
+- [x] Normal transitions unchanged — grounded block (`:78-84`) untouched; idle/run/land one-shot flow preserved (commit diff touches only the airborne branch + the export block)
+- [x] `gdlint .` → 0 problems
+- [x] `godot --headless --editor --path . --quit-after 10` clean (no ERROR / SCRIPT ERROR / Parse Error / Failed loading)
+- [x] `scenes/boot.tscn`, `scenes/act/arena.tscn`, `scenes/actors/player.tscn` smoke clean
+- [x] Commit `7f1ac58` contains only `scripts/world/player_animator.gd`; stray `player_sheet.png.import` is not part of the commit (see note below)
+
+> **Note (generated sidecar):** the headless editor import on this machine re-flips `assets/sprites/player/player_sheet.png.import` to lossy s3tc VRAM (`compress/mode=2`, `vram_texture=true`, `mipmaps/generate=true`). This is a transient machine-generated artifact, not authored code. It was reverted to the committed non-lossy settings (`compress/mode=0`, `mipmaps/generate=false`) before committing spec artifacts and is not part of any commit, preserving the AGENTS.md nearest-neighbor / no-resampling invariant.
+
 ## Tests
 - Command: `uvx --from gdtoolkit gdlint .`
 - Result: `Success: no problems found` (0 problems)
@@ -55,10 +66,10 @@ PASS
 - Result: all 5 clean — no errors
 
 ## Developer log integrity
-- Tasks with filled Implementation log: 6 / 6 (4 base + fix-001 + fix-002)
-- Commit/file mismatches: 0 — fix-001 `f40bc15` = 5 files (matches log); fix-002 `67de694` = 76 files (72 frame PNGs grouped as "all 72" + 2 sheets + script + yml, matches log); base commits fc0e2e5=4, 8e6f906=3, a4af8a0=2, 6fd2e02=2
+- Tasks with filled Implementation log: 7 / 7 (4 base + fix-001 + fix-002 + fix-003)
+- Commit/file mismatches: 0 — fix-001 `f40bc15` = 5 files (matches log); fix-002 `67de694` = 76 files (72 frame PNGs grouped as "all 72" + 2 sheets + script + yml, matches log); fix-003 `7f1ac58` = 1 file (`scripts/world/player_animator.gd`, matches log); base commits fc0e2e5=4, 8e6f906=3, a4af8a0=2, 6fd2e02=2
 - Tasks missing Implementation log: 0
-- Context/Reference read lists: complete for all 6 tasks; all declared files exist in-repo (no hallucination)
+- Context/Reference read lists: complete for all 7 tasks; all declared files exist in-repo (no hallucination)
 - fix-002 note: `.tres` files re-emitted byte-identically (UIDs/structure preserved), so git reports no change — consistent with the "keep UIDs/structure" acceptance criterion
 
 ## Convention compliance (AGENTS.md / CLAUDE.md)
@@ -70,7 +81,7 @@ PASS
 - Explicit collision layers/masks (#6): HONORED — player layer 2/mask 1; world layer 1/mask 2 (arena + player)
 - snake_case files / PascalCase nodes (#7): HONORED
 - HD-2D billboard + world lighting invariants: HONORED — billboard=1 sprite; arena carries WorldEnvironment + DirectionalLight3D
-- Conventional-commit messages: HONORED — 4 `feat` + 2 `fix` commits, all scoped `act-player-foundation`
+- Conventional-commit messages: HONORED — 4 `feat` + 3 `fix` commits, all scoped `act-player-foundation`
 
 ## Docs updated
 - `docs/sdd/artifacts/act-player-foundation.yml` — updated (fix-001: XZ walking + 3D arena; fix-002: regenerated sprite assets + temporary idle collapse). No AGENTS.md change required.
