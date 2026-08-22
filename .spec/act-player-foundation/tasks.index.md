@@ -11,3 +11,11 @@ Test tool: none
 | 004 | ACT arena scene + artifact registry + validation | done (6fd2e02) |
 
 Tasks run in ID order. The Orchestrator executes them one at a time. The order IS the dependency.
+
+## Fixes
+
+| Fix ID  | Title                                                  | Triggered by failure in | Files (suggested)                                          |
+|---------|--------------------------------------------------------|-------------------------|------------------------------------------------------------|
+| fix-001 | Restore XZ depth walking + rebuild arena as 3D ground  | Playtest failure cycle 1 | scripts/world/player.gd, scripts/world/player_animator.gd, scripts/world/side_view_camera.gd, scenes/act/arena.tscn, docs/sdd/artifacts/act-player-foundation.yml |
+| fix-002 | Vendor frame pipeline + despeckle + collapse idle row  | Playtest failure cycle 1 | tools/art_pipeline/frames_v1_user_process.py, assets/sprites/player/* (sheets, frames, both .tres), docs/sdd/artifacts/act-player-foundation.yml |
+
