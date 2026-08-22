@@ -1,7 +1,9 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
+[ext_resource type="PackedScene" path="res://scenes/dev/zone_pillar.tscn" id="3_pillar"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_target_dummy.svg" id="4_dummy"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -16,8 +18,29 @@ albedo_color = Color(0.22, 0.24, 0.28, 1)
 [sub_resource type="StandardMaterial3D" id="Material_step"]
 albedo_color = Color(0.34, 0.36, 0.42, 1)
 
+[sub_resource type="StandardMaterial3D" id="Material_runway"]
+albedo_color = Color(0.48, 0.5, 0.55, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_movement"]
+albedo_color = Color(0.55, 0.38, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_animation"]
+albedo_color = Color(0.42, 0.3, 0.55, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_combat"]
+albedo_color = Color(0.55, 0.22, 0.22, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_ui"]
+albedo_color = Color(0.22, 0.35, 0.55, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_save"]
+albedo_color = Color(0.24, 0.45, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_audio"]
+albedo_color = Color(0.2, 0.45, 0.48, 1)
+
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
-size = Vector3(24, 1, 16)
+size = Vector3(120, 1, 16)
 
 [sub_resource type="BoxMesh" id="BoxMesh_step_low"]
 size = Vector3(3, 0.5, 3)
@@ -25,14 +48,26 @@ size = Vector3(3, 0.5, 3)
 [sub_resource type="BoxMesh" id="BoxMesh_step_high"]
 size = Vector3(3, 1, 3)
 
+[sub_resource type="BoxMesh" id="BoxMesh_runway"]
+size = Vector3(18, 0.25, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pad"]
+size = Vector3(18, 0.02, 14)
+
 [sub_resource type="BoxShape3D" id="BoxShape_ground"]
-size = Vector3(24, 1, 16)
+size = Vector3(120, 1, 16)
 
 [sub_resource type="BoxShape3D" id="BoxShape_step_low"]
 size = Vector3(3, 0.5, 3)
 
 [sub_resource type="BoxShape3D" id="BoxShape_step_high"]
 size = Vector3(3, 1, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape_runway"]
+size = Vector3(18, 0.25, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape_dummy"]
+size = Vector3(0.7, 2.2, 0.5)
 
 [node name="Arena" type="Node3D"]
 
@@ -57,36 +92,181 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 mesh = SubResource("BoxMesh_ground")
 material_override = SubResource("Material_ground")
 
-[node name="StepLow" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -4)
+[node name="Zones" type="Node3D" parent="."]
+
+[node name="MovementZone" type="Node3D" parent="Zones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, 0)
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/MovementZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_pad")
+material_override = SubResource("Material_pad_movement")
+
+[node name="Runway" type="StaticBody3D" parent="Zones/MovementZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
 collision_layer = 1
 collision_mask = 2
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StepLow"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/MovementZone/Runway"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+shape = SubResource("BoxShape_runway")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Zones/MovementZone/Runway"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+mesh = SubResource("BoxMesh_runway")
+material_override = SubResource("Material_runway")
+
+[node name="StepLow" type="StaticBody3D" parent="Zones/MovementZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -3)
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/MovementZone/StepLow"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 shape = SubResource("BoxShape_step_low")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="StepLow"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Zones/MovementZone/StepLow"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 mesh = SubResource("BoxMesh_step_low")
 material_override = SubResource("Material_step")
 
-[node name="StepHigh" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 3)
+[node name="StepHigh" type="StaticBody3D" parent="Zones/MovementZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
 collision_layer = 1
 collision_mask = 2
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StepHigh"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/MovementZone/StepHigh"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape_step_high")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="StepHigh"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Zones/MovementZone/StepHigh"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("BoxMesh_step_high")
 material_override = SubResource("Material_step")
 
+[node name="ZonePillar" parent="Zones/MovementZone" instance=ExtResource("3_pillar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+title = "Movement / Jump"
+responsibility = "XZ movement, gravity, jump buffer and jump-cut feel"
+paths = PackedStringArray("res://scripts/world/player.gd", "res://scripts/config/player_config.gd", "res://resources/player_config.tres")
+
+[node name="AnimationPreviewZone" type="Node3D" parent="Zones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 0)
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AnimationPreviewZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_pad")
+material_override = SubResource("Material_pad_animation")
+
+[node name="ZonePillar" parent="Zones/AnimationPreviewZone" instance=ExtResource("3_pillar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+title = "Animation Preview"
+responsibility = "Play each of the 12 player animations and flip facing"
+paths = PackedStringArray("res://scripts/world/player_animator.gd", "res://assets/sprites/player/player_frames.tres")
+
+[node name="CombatRange" type="Node3D" parent="Zones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 0)
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/CombatRange"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_pad")
+material_override = SubResource("Material_pad_combat")
+
+[node name="TargetDummy1" type="StaticBody3D" parent="Zones/CombatRange"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -2)
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/CombatRange/TargetDummy1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_dummy")
+
+[node name="Sprite3D" type="Sprite3D" parent="Zones/CombatRange/TargetDummy1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+texture = ExtResource("4_dummy")
+billboard = 1
+pixel_size = 0.01
+
+[node name="TargetDummy2" type="StaticBody3D" parent="Zones/CombatRange"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/CombatRange/TargetDummy2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_dummy")
+
+[node name="Sprite3D" type="Sprite3D" parent="Zones/CombatRange/TargetDummy2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+texture = ExtResource("4_dummy")
+billboard = 1
+pixel_size = 0.01
+
+[node name="TargetDummy3" type="StaticBody3D" parent="Zones/CombatRange"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -2)
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/CombatRange/TargetDummy3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_dummy")
+
+[node name="Sprite3D" type="Sprite3D" parent="Zones/CombatRange/TargetDummy3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+texture = ExtResource("4_dummy")
+billboard = 1
+pixel_size = 0.01
+
+[node name="ZonePillar" parent="Zones/CombatRange" instance=ExtResource("3_pillar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+title = "Combat Range"
+responsibility = "Inert target dummies for future combat targeting (no logic)"
+paths = PackedStringArray("res://assets/placeholders/placeholder_target_dummy.svg")
+
+[node name="UiHudZone" type="Node3D" parent="Zones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/UiHudZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_pad")
+material_override = SubResource("Material_pad_ui")
+
+[node name="ZonePillar" parent="Zones/UiHudZone" instance=ExtResource("3_pillar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+title = "UI / HUD"
+responsibility = "Show/hide the test health bar and dialogue box"
+paths = PackedStringArray("res://scripts/autoload/objective_hud.gd", "res://scripts/autoload/dialogue_service.gd")
+
+[node name="SaveLoadZone" type="Node3D" parent="Zones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 0)
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/SaveLoadZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_pad")
+material_override = SubResource("Material_pad_save")
+
+[node name="ZonePillar" parent="Zones/SaveLoadZone" instance=ExtResource("3_pillar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+title = "Save / Load"
+responsibility = "Save and restore player position and facing"
+paths = PackedStringArray("res://scripts/autoload/save_service.gd", "res://scripts/dev/save_load_trigger.gd")
+
+[node name="AudioZone" type="Node3D" parent="Zones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 0)
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AudioZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_pad")
+material_override = SubResource("Material_pad_audio")
+
+[node name="ZonePillar" parent="Zones/AudioZone" instance=ExtResource("3_pillar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
+title = "Audio"
+responsibility = "Playback smoke tests via SFX trigger points (placeholder beeps)"
+paths = PackedStringArray("res://scripts/dev/sfx_trigger.gd", "res://assets/placeholders/placeholder_beep.wav")
+
 [node name="Player" parent="." instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 1, 2)
 
 [node name="SideViewCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 12)

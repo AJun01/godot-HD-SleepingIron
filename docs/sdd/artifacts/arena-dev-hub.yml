@@ -1,0 +1,32 @@
+feature: arena-dev-hub
+artifacts:
+  - path: scenes/act/arena.tscn
+    type: scene
+    role: six-zone dev-hub arena (flat walkable ground laid out along X with movement/jump, animation preview, combat range, UI/HUD, save/load and audio zones; lit 3D world + player + side-view camera)
+    invariants:
+      - WorldEnvironment + DirectionalLight3D carry lighting
+      - single walkable ground StaticBody3D (world = layer 1, mask = 2) spanning six zones along X
+      - movement zone has runway + two step boxes; combat range has three inert billboarded dummies (no script)
+      - player + SideViewCamera wiring preserved (camera X-follows, fixed Y/Z, pitched down)
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: scenes/dev/zone_pillar.tscn
+    type: scene
+    role: reusable billboarded Label3D zone pillar (Node3D + Label3D) driven by zone_pillar.gd
+    invariants:
+      - billboarded Label3D composed from @export title/responsibility/paths
+      - no physics body; content-only sign
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/dev/zone_pillar.gd
+    type: script
+    role: composable ZonePillar (composes @export title/responsibility/paths into the Label3D text, defensive label path resolution)
+    invariants:
+      - static typing, @export dependency injection, no get_node("../..")
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/placeholders/placeholder_target_dummy.svg
+    type: sprite
+    role: combat-range target dummy placeholder (flat humanoid silhouette + target ring + text label)
+    status: placeholder
+    invariants:
+      - source aspect ratio preserved; nearest-neighbor filtering
+      - transparent background so the billboarded dummy stands on the ground
+    validation: godot --headless --editor --path . --quit-after 10
