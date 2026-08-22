@@ -14,3 +14,11 @@ Test tool: none
 | 007 | Audio zone (placeholder SFX triggers)              | done (988783b) |
 
 Tasks run in ID order. The Orchestrator executes them one at a time. The order IS the dependency.
+
+## Fixes
+
+| Fix ID  | Title                                                          | Triggered by failure in | Files (suggested)                                      |
+|---------|----------------------------------------------------------------|-------------------------|--------------------------------------------------------|
+| fix-001 | Rename sfx_trigger `_player` → `_audio_player`                  | Review cycle 1 (#44)    | scripts/dev/sfx_trigger.gd                             |
+| fix-002 | Parameterize HUD test health values via @export                | Review cycle 1 (#45)    | scripts/autoload/objective_hud.gd, scripts/dev/ui_hud_trigger.gd |
+| fix-003 | SaveService save path error reporting + bool return            | Review cycle 1 (#47)    | scripts/autoload/save_service.gd                       |
