@@ -36,4 +36,4 @@
 | fix-003 | Arena text legibility | Smaller, non-overlapping pillars/status labels; paths dropped from the 3D pillar text | done |
 | fix-004 | Arena text final pass | Title-only pillars, bounded wrap width, thinner outline, thicker dummy health bar | done |
 | fix-005 | Combat range status position | Move CombatRange StatusLabel above title/bars (y ≈ 3.6), shorten hint/reset strings | done |
-| fix-006 | Combat status depth alignment | Move CombatRange StatusLabel to (0, 4.2, -7) on the pillar depth plane; center dummy health bar (center_offset 0,0,0) | pending |
+| fix-006 | Combat status depth alignment | Move CombatRange StatusLabel to (0, 4.2, -7) on the pillar depth plane; center dummy health bar (center_offset 0,0,0) | done |

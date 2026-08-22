@@ -319,3 +319,58 @@ vision-pass judgment for the human/vision model.
 ### Overall
 
 Status: PASS
+
+## Fix round 4 re-verification
+
+Re-verified fix-006 (combat-range status depth alignment + centered dummy health
+bar, commit `8cfda92`) against its acceptance criteria in the real files, then
+re-ran the full gate suite and regenerated the two vision-pass screenshots.
+
+### fix-006 verdict: PASS
+
+- **`scenes/act/arena.tscn` CombatRange `StatusLabel`** — transform =
+  `(0, 4.2, -7)` (`arena.tscn:265`), so its z now matches the `ZonePillar` z
+  (`-7`, `arena.tscn:303`); `billboard = 1` (`:266`), `fixed_size = true`
+  (`:267`), `pixel_size = 0.005` (`:268`), `font_size = 16` (`:269`),
+  `outline_size = 2` (`:270`), `width = 110` (`:271`), `autowrap_mode = 2`
+  (`:272`), both alignments `1` (`:273-274`) — every other property intact
+  (DD1).
+- **`scenes/actors/target_dummy.tscn` `QuadMesh_bar`** — `center_offset =
+  Vector3(0, 0, 0)` (`:12`), `size = Vector2(2, 0.3)` unchanged (`:11`);
+  `HealthBar` root y = 2.7 (`:51`), `Background`/`Fill` both still share
+  `QuadMesh_bar` (`:54`, `:60`), `Fill` local z = 0.01 (`:59`) unchanged — the
+  HealthBar/Fill node structure is untouched (DD2).
+- **No scripts/lighting/camera touched** — `git show --stat 8cfda92` touches only
+  the two `.tscn` files and the fix-006 markdown log; the diff is exactly two
+  lines (arena transform y 3.6→4.2 / z 0→−7, dummy `center_offset` 1→0). `Sun`,
+  `WorldEnvironment`, and `SideViewCamera` are byte-identical; `target_dummy.gd`
+  fill logic is unchanged (DD2 note: the stale "left-anchored" comment is
+  out of scope, as specified).
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `/Users/aj/.local/bin/gdlint .` (`gdlint` not on PATH) | `Success: no problems found` (0 problems) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/actors/target_dummy.tscn` | exit 0; error grep empty |
+
+Grep target set (`ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`)
+empty in every run. No `.import` noise was produced (working tree stayed clean
+before the docs commit), so nothing needed reverting.
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_screenshot.tscn` opened a Metal window
+(Apple M2 Pro, Forward+) and saved two 3456×2104 viewport screenshots via a
+temporary driver (deleted afterwards): `/tmp/combat-fix-arena-1.png` (CombatRange
+dummies + status label above the pillar title) and `/tmp/combat-fix-arena-2.png`
+(pillar overview, higher/pulled-back camera). Final on-screen text legibility and
+ordering remain a vision-pass judgment for the human/vision model (this verifier
+model cannot read images).
+
+### Overall
+
+Status: PASS
