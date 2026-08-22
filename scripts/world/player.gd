@@ -1,38 +1,103 @@
+class_name Player
 extends CharacterBody3D
-## Billboarded player component (AGENTS.md HD-2D invariants: 2D sprite in a lit
-## 3D world). Reads 8-direction input from the InputMap move actions and applies
-## it on the XZ floor plane. Tunables come from PlayerConfig; gravity is a
-## per-body @export so the player settles onto the ground via physics.
+## Side-view player physics (AGENTS.md HD-2D invariants: billboarded sprite in a
+## lit 3D world). Horizontal input drives X (left/right) and Z (depth via
+## move_up/move_down); gravity and jumping act on Y only. All movement and
+## jump-feel tunables come from PlayerConfig; jumping uses a short input buffer
+## plus a jump-cut so a tap yields a short hop and a hold yields a full jump
+## (design.md ACT feel).
+
+## Emitted once when the body returns to the floor, for the animator (task 002).
+signal landed
 
 const PLAYER_CONFIG: PlayerConfig = preload("res://resources/player_config.tres")
 
-## Downward acceleration applied every physics frame (units/second^2).
-@export var gravity: float = 20.0
+## Facing sign driven by the last non-zero X input: +1 right, -1 left.
+var facing: int = 1
+
+var _jump_buffer_timer: float = 0.0
+var _jump_cut_applied: bool = false
+var _was_on_floor: bool = true
 
 
 func _physics_process(delta: float) -> void:
-	var direction: Vector3 = _read_input_direction()
+	var direction: Vector2 = _read_movement_input()
+	_update_facing(direction.x)
 	_apply_horizontal_velocity(direction, delta)
-	velocity.y -= gravity * delta
+	_apply_gravity(delta)
+	_consume_jump_buffer(delta)
 	move_and_slide()
+	_detect_landing()
 
 
-func _read_input_direction() -> Vector3:
+func _unhandled_input(event: InputEvent) -> void:
+	# Dialogue owns the input lock: movement is gated in _read_movement_input
+	# and jump is gated here, so both stay inert mid-beat.
+	if DialogueService.is_open():
+		return
+	if event.is_action_pressed(&"jump") and not event.is_echo():
+		_jump_buffer_timer = PLAYER_CONFIG.jump_buffer_time
+	elif event.is_action_released(&"jump"):
+		_apply_jump_cut()
+
+
+func _read_movement_input() -> Vector2:
 	# While a dialogue is open, report zero input so friction brings the body to
 	# rest and the player cannot walk away mid-beat (design.md movement block).
 	if DialogueService.is_open():
-		return Vector3.ZERO
-	var input_2d: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	# Map screen up/down to world depth so "up" walks away from the camera.
-	return Vector3(input_2d.x, 0.0, input_2d.y)
+		return Vector2.ZERO
+	var raw: Vector2 = Vector2(
+		Input.get_axis("move_left", "move_right"),
+		Input.get_axis("move_up", "move_down")
+	)
+	# Normalize so diagonal walking is not √2 faster than a cardinal axis.
+	return raw.limit_length(1.0)
 
 
-func _apply_horizontal_velocity(direction: Vector3, delta: float) -> void:
-	var horizontal: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
-	var target: Vector3 = direction * PLAYER_CONFIG.move_speed
-	if direction.length_squared() > 0.0:
-		horizontal = horizontal.move_toward(target, PLAYER_CONFIG.acceleration * delta)
+func _apply_horizontal_velocity(direction: Vector2, delta: float) -> void:
+	if direction != Vector2.ZERO:
+		var target: Vector2 = direction * PLAYER_CONFIG.move_speed
+		velocity.x = move_toward(velocity.x, target.x, PLAYER_CONFIG.acceleration * delta)
+		velocity.z = move_toward(velocity.z, target.y, PLAYER_CONFIG.acceleration * delta)
 	else:
-		horizontal = horizontal.move_toward(Vector3.ZERO, PLAYER_CONFIG.friction * delta)
-	velocity.x = horizontal.x
-	velocity.z = horizontal.z
+		velocity.x = move_toward(velocity.x, 0.0, PLAYER_CONFIG.friction * delta)
+		velocity.z = move_toward(velocity.z, 0.0, PLAYER_CONFIG.friction * delta)
+
+
+func _apply_gravity(delta: float) -> void:
+	# Only pull while airborne; grounded frames keep velocity.y flat so
+	# move_and_slide stays snapped to the floor.
+	if not is_on_floor():
+		velocity.y -= PLAYER_CONFIG.gravity * delta
+
+
+func _consume_jump_buffer(delta: float) -> void:
+	_jump_buffer_timer = maxf(_jump_buffer_timer - delta, 0.0)
+	# is_on_floor() reflects the previous move_and_slide, so a press buffered
+	# just before touchdown fires on the frame after landing.
+	if is_on_floor() and _jump_buffer_timer > 0.0:
+		velocity.y = PLAYER_CONFIG.jump_velocity
+		_jump_buffer_timer = 0.0
+		_jump_cut_applied = false
+
+
+func _apply_jump_cut() -> void:
+	# Cut only while ascending (velocity.y > 0) and once per jump, so a quick tap
+	# yields a shorter hop than a held jump.
+	if _jump_cut_applied or velocity.y <= 0.0:
+		return
+	velocity.y *= PLAYER_CONFIG.jump_cut_factor
+	_jump_cut_applied = true
+
+
+func _update_facing(direction_x: float) -> void:
+	if direction_x > 0.0:
+		facing = 1
+	elif direction_x < 0.0:
+		facing = -1
+
+
+func _detect_landing() -> void:
+	if is_on_floor() and not _was_on_floor:
+		landed.emit()
+	_was_on_floor = is_on_floor()

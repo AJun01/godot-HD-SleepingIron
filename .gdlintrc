@@ -22,6 +22,9 @@ disable: []
 duplicated-load: null
 enum-element-name: '[A-Z][A-Z0-9]*(_[A-Z0-9]+)*'
 enum-name: ([A-Z][a-z0-9]*)+
+# addons/ holds vendored third-party plugins (MIT-licensed Aseprite importer
+# etc.) that are not this project's code. Exempted from our strict lint gates
+# by design; upstream quality is reviewed at vendoring time instead.
 excluded_directories: !!set
   .git: null
   addons: null

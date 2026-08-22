@@ -47,3 +47,7 @@ Session.vim
 .#*
 *.sublime-project
 *.sublime-workspace
+
+# Python cache
+__pycache__/
+*.pyc

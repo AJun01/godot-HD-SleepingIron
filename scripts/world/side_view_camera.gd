@@ -1,0 +1,54 @@
+extends Camera3D
+## Side-view follow component: keeps this camera locked to a constant elevated
+## DNF-style side view, pitched downward at the action, while its X follows an
+## @export target with framerate-independent smoothing. Y and Z are pinned
+## (elevated above the play plane and behind the walkable depth range), so the
+## framing never drifts vertically or in depth. The camera never follows Z:
+## depth is expressed by the player's own Z position under the fixed
+## perspective camera (the Octopath depth cue), and following Z would zoom the
+## whole scene as the player walks in depth. Mirrors camera_follow.gd's target/
+## target_path/follow_speed pattern but with side-view semantics (no look_at).
+
+## Node the camera tracks. Wired in the scene via @export dependency injection.
+@export var target: Node3D
+
+## Fallback path resolved in _ready when the scene-serialized Node reference did
+## not resolve (same defensive pattern as camera_follow.gd).
+@export var target_path: NodePath = NodePath("../Player")
+
+## Fixed camera height in world space (elevated DNF-style side view, looking
+## down at the action).
+@export var vertical_offset: float = 5.5
+
+## Fixed camera depth behind the play plane (Z=0), in world space.
+@export var z_distance: float = 10.0
+
+## Follow speed; higher values track more tightly (per-second exponential rate).
+@export var follow_speed: float = 6.0
+
+## Downward pitch of the camera in degrees (negative = look down). DNF-style
+## elevated side view: the camera sits high above the play plane and tilts
+## down at the action instead of shooting horizontally at waist height.
+@export var pitch_degrees: float = -25.0
+
+
+func _ready() -> void:
+	# Defensive resolution: the exported Node reference can come back null after
+	# scene instantiation even when the sibling exists; resolve by path instead.
+	if target == null and not target_path.is_empty():
+		var resolved: Node = get_node_or_null(target_path)
+		if resolved is Node3D:
+			target = resolved
+
+
+func _physics_process(delta: float) -> void:
+	if target == null:
+		return
+	# Exponential smoothing makes the X-follow framerate-independent. Y and Z are
+	# assigned (not smoothed) so they stay exactly fixed at the side-view offsets.
+	var weight: float = 1.0 - exp(-follow_speed * delta)
+	var smoothed_x: float = lerpf(global_position.x, target.global_position.x, weight)
+	global_position = Vector3(smoothed_x, vertical_offset, z_distance)
+	rotation = Vector3(deg_to_rad(pitch_degrees), 0.0, 0.0)
+	# Rotation is a constant DNF-style downward pitch, not a per-frame look_at:
+	# the camera stays locked in a side view tilted down at the action.

@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/player.gd" id="1_player"]
-[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_player.svg" id="2_player_tex"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/player/player_frames.tres" id="2_frames"]
+[ext_resource type="Script" path="res://scripts/world/player_animator.gd" id="3_animator"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
 radius = 0.4
@@ -15,6 +16,15 @@ script = ExtResource("1_player")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape_player")
 
-[node name="Sprite" type="Sprite3D" parent="."]
-texture = ExtResource("2_player_tex")
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
 billboard = 1
+centered = true
+pixel_size = 0.01
+
+[node name="Animator" type="Node3D" parent="."]
+script = ExtResource("3_animator")
+player = NodePath("..")
+sprite = NodePath("../AnimatedSprite3D")
