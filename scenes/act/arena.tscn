@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=42 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
@@ -9,6 +9,9 @@
 [ext_resource type="Script" path="res://scripts/dev/animation_preview_zone.gd" id="7_anim_preview"]
 [ext_resource type="Script" path="res://scripts/dev/ui_hud_trigger.gd" id="8_ui_hud_trigger"]
 [ext_resource type="Resource" path="res://resources/dialogue/hub_test.tres" id="9_hub_test"]
+[ext_resource type="Script" path="res://scripts/dev/sfx_trigger.gd" id="10_sfx_trigger"]
+[ext_resource type="AudioStream" path="res://assets/audio/placeholder_beep.wav" id="11_beep_low"]
+[ext_resource type="AudioStream" path="res://assets/audio/placeholder_beep_high.wav" id="12_beep_high"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -418,7 +421,61 @@ material_override = SubResource("Material_pad_audio")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Audio"
 responsibility = "Playback smoke tests via SFX trigger points (placeholder beeps)"
-paths = PackedStringArray("res://scripts/dev/sfx_trigger.gd", "res://assets/placeholders/placeholder_beep.wav")
+paths = PackedStringArray("res://scripts/dev/sfx_trigger.gd", "res://assets/audio/placeholder_beep.wav", "res://assets/audio/placeholder_beep_high.wav")
+
+[node name="BeepLowPad" type="Area3D" parent="Zones/AudioZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("10_sfx_trigger")
+stream = ExtResource("11_beep_low")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/AudioZone/BeepLowPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Zones/AudioZone/BeepLowPad"]
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AudioZone/BeepLowPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_audio")
+
+[node name="BeepHighPad" type="Area3D" parent="Zones/AudioZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("10_sfx_trigger")
+stream = ExtResource("12_beep_high")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/AudioZone/BeepHighPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Zones/AudioZone/BeepHighPad"]
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AudioZone/BeepHighPad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_audio")
+
+[node name="BeepLowPad2" type="Area3D" parent="Zones/AudioZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("10_sfx_trigger")
+stream = ExtResource("11_beep_low")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/AudioZone/BeepLowPad2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="Zones/AudioZone/BeepLowPad2"]
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/AudioZone/BeepLowPad2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_audio")
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 1, 2)

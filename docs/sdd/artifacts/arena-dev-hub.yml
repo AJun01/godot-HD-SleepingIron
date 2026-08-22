@@ -86,3 +86,24 @@ artifacts:
     invariants:
       - DialogueData shape only (speaker + ordered lines); no content baked into scenes or services
     validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/dev/sfx_trigger.gd
+    type: script
+    role: composable Area3D SFX trigger (interaction layer 3 / mask 2; @export AudioStream + child AudioStreamPlayer; plays the beep on body_entered when not already playing)
+    invariants:
+      - explicit collision layer 3 / mask 2 (no defaults)
+      - @export DI + defensive audio_player_path resolution; no get_node("../..")
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: assets/audio/placeholder_beep.wav
+    type: audio
+    role: audio-zone low placeholder beep (440 Hz sine with short fade envelope)
+    status: placeholder
+    invariants:
+      - 16-bit PCM mono WAV, imports cleanly as AudioStream
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: assets/audio/placeholder_beep_high.wav
+    type: audio
+    role: audio-zone high placeholder beep (880 Hz sine with short fade envelope)
+    status: placeholder
+    invariants:
+      - 16-bit PCM mono WAV, imports cleanly as AudioStream
+    validation: godot --headless --editor --path . --quit-after 10
