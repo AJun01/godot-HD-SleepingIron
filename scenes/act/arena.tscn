@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
@@ -7,6 +7,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/architecture_diagram.svg" id="5_wall"]
 [ext_resource type="Script" path="res://scripts/dev/save_load_trigger.gd" id="6_trigger"]
 [ext_resource type="Script" path="res://scripts/dev/animation_preview_zone.gd" id="7_anim_preview"]
+[ext_resource type="Script" path="res://scripts/dev/ui_hud_trigger.gd" id="8_ui_hud_trigger"]
+[ext_resource type="Resource" path="res://resources/dialogue/hub_test.tres" id="9_hub_test"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -96,6 +98,9 @@ albedo_color = Color(0.72, 0.55, 0.28, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape_zone"]
 size = Vector3(18, 2, 14)
+
+[sub_resource type="StandardMaterial3D" id="Material_pad_dialogue"]
+albedo_color = Color(0.25, 0.5, 0.5, 1)
 
 [node name="Arena" type="Node3D"]
 
@@ -319,6 +324,39 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "UI / HUD"
 responsibility = "Show/hide the test health bar and dialogue box"
 paths = PackedStringArray("res://scripts/autoload/objective_hud.gd", "res://scripts/autoload/dialogue_service.gd")
+
+[node name="HealthTrigger" type="Area3D" parent="Zones/UiHudZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("8_ui_hud_trigger")
+mode = &"health"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/UiHudZone/HealthTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/UiHudZone/HealthTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_ui")
+
+[node name="DialogueTrigger" type="Area3D" parent="Zones/UiHudZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+collision_layer = 3
+collision_mask = 2
+script = ExtResource("8_ui_hud_trigger")
+mode = &"dialogue"
+dialogue = ExtResource("9_hub_test")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/UiHudZone/DialogueTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape_trigger")
+
+[node name="Pad" type="MeshInstance3D" parent="Zones/UiHudZone/DialogueTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("BoxMesh_trigger_pad")
+material_override = SubResource("Material_pad_dialogue")
 
 [node name="SaveLoadZone" type="Node3D" parent="Zones"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 0)

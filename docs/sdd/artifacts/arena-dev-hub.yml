@@ -66,3 +66,23 @@ artifacts:
       - static typing; preview preserves the facing flip and resumes auto-mapping on stop_preview
       - one-way dependency preserved (animator reads player; player never references animator)
     validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/autoload/objective_hud.gd
+    type: script
+    role: autoload objective HUD extended with a lazy test health bar (show_test_health_bar/hide_test_health_bar) built in the existing CanvasLayer, toggled by the UI/HUD zone smoke test
+    invariants:
+      - static typing; bar built lazily in the same CanvasLayer as the objective label; first build deferred from signal callbacks
+      - test bar sits below the objective label so it never overlaps the objective text or the transition overlay
+    validation: godot --headless --editor --path . --quit-after 10
+  - path: scripts/dev/ui_hud_trigger.gd
+    type: script
+    role: composable Area3D UI/HUD trigger (interaction layer 3 / mask 2; @export mode health vs dialogue) that toggles the ObjectiveHud test health bar on body_entered/body_exited or plays the hub_test dialogue via DialogueService on body_entered
+    invariants:
+      - explicit collision layer 3 / mask 2 (no defaults)
+      - @export mode + @export DialogueData DI; dialogue call guarded by DialogueService.is_open()
+    validation: godot --headless --path . --quit-after 5 scenes/act/arena.tscn
+  - path: resources/dialogue/hub_test.tres
+    type: resource
+    role: minimal DialogueData smoke-test fixture (speaker + two lines) played by the UI/HUD dialogue trigger
+    invariants:
+      - DialogueData shape only (speaker + ordered lines); no content baked into scenes or services
+    validation: godot --headless --editor --path . --quit-after 10
