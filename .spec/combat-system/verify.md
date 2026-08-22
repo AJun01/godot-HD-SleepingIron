@@ -268,3 +268,54 @@ remains a vision-pass judgment for the human/vision model.
 ### Overall
 
 Status: PASS
+
+## Fix round 3 re-verification
+
+Re-verified fix-005 (combat-range status position, commit `4102a4c`) against its
+acceptance criteria in the real files, then re-ran the full gate suite and
+regenerated the two vision-pass screenshots.
+
+### fix-005 verdict: PASS
+
+- **`scenes/act/arena.tscn` CombatRange `StatusLabel`** — transform y = 3.6
+  (`arena.tscn:265`), x/z unchanged (`0, 0`); `billboard = 1` (`:266`),
+  `fixed_size = true` (`:267`), `pixel_size = 0.005` (`:268`),
+  `font_size = 16` (`:269`), `outline_size = 2` (`:270`), `width = 110`
+  (`:271`), `autowrap_mode = 2` (`:272`), both alignments `1` (`:273-274`) —
+  all exactly as specified (DD1).
+- **`scripts/dev/combat_range_zone.gd`** — `const HINT_TEXT: String =
+  "Attack (J) · Pad resets"` (`:10`) and `const RESET_TEXT: String =
+  "Dummies reset!"` (`:13`), both typed `String` consts; `_set_status()` and all
+  logic unchanged (DD2).
+- **`AnimationPreviewZone` `StatusLabel` untouched** at y = 2.2
+  (`arena.tscn:203`); `git show 4102a4c` diff touches only `arena.tscn` (2-line
+  transform change), `combat_range_zone.gd` (2 const strings), and the fix-005
+  markdown — no other zone, pillar, dummy, lighting, or camera property changed
+  (DD3). No per-frame positioning logic introduced.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `/Users/aj/.local/bin/gdlint .` (`gdlint` not on PATH) | `Success: no problems found` (0 problems) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+
+Grep target set (`ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`)
+empty in every run. No `.import` noise was produced, so nothing needed reverting
+(working tree stayed clean before the docs commit).
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_screenshot.tscn` opened a Metal window
+(Apple M2 Pro, Forward+) and saved two 3456×2104 viewport screenshots via a
+temporary driver (deleted afterwards):
+`/tmp/combat-fix-arena-1.png` (CombatRange dummies + status label) and
+`/tmp/combat-fix-arena-2.png` (pillar overview). The relocated label renders
+above the pillar title and dummy bars; final on-screen legibility remains a
+vision-pass judgment for the human/vision model.
+
+### Overall
+
+Status: PASS

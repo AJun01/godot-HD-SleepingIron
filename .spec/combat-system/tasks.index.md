@@ -35,4 +35,4 @@
 | fix-002 | Walk/run two-tier movement | DNF-style: hold = walk, double-tap = run (`walk_speed` + `double_tap_window` in PlayerConfig) | done |
 | fix-003 | Arena text legibility | Smaller, non-overlapping pillars/status labels; paths dropped from the 3D pillar text | done |
 | fix-004 | Arena text final pass | Title-only pillars, bounded wrap width, thinner outline, thicker dummy health bar | done |
-| fix-005 | Combat range status position | Move CombatRange StatusLabel above title/bars (y ≈ 3.6), shorten hint/reset strings | pending |
+| fix-005 | Combat range status position | Move CombatRange StatusLabel above title/bars (y ≈ 3.6), shorten hint/reset strings | done |
