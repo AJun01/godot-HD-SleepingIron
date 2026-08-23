@@ -13,10 +13,10 @@
         {"name": "run", "loop": true, "speed": 10},
         {"name": "jump", "loop": false, "speed": 10, "columns": [0, 1, 2, 3]},
         {"name": "land", "loop": false, "speed": 10, "from": "jump", "columns": [4, 5, 6, 7]},
-        {"name": "fall", "loop": true, "speed": 10, "from": "jump", "columns": [4, 5, 6, 7]},
+        {"name": "fall", "loop": false, "speed": 10, "from": "jump", "columns": [4, 5]},
         {"name": "attack_1", "loop": false, "speed": 20},
         {"name": "attack_2", "loop": false, "speed": 12.5},
-        {"name": "attack_3", "loop": false, "speed": 10},
+        {"name": "attack_3", "loop": false, "speed": 14.3},
         {"name": "attack_air", "loop": false, "speed": 10},
         {"name": "hit", "loop": false, "speed": 10},
         {"name": "dodge", "loop": false, "speed": 10},
@@ -34,7 +34,7 @@
         {"name": "run", "loop": true, "speed": 10},
         {"name": "jump", "loop": false, "speed": 10},
         {"name": "land", "loop": false, "speed": 10},
-        {"name": "fall", "loop": true, "speed": 10, "from": "land"}
+        {"name": "fall", "loop": false, "speed": 10, "from": "land", "columns": [0, 1]}
       ]
     }
   }

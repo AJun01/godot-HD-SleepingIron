@@ -72,6 +72,7 @@ func _physics_process(delta: float) -> void:
 	_update_dodge(delta)
 	_update_hit_window()
 	_update_hit_area_position()
+	_scan_hit_area()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -325,12 +326,34 @@ func _close_window() -> void:
 
 
 func _on_hit_area_entered(area: Area3D) -> void:
-	# Deliver once per active window to each Hurtbox. The typed check keeps the
-	# coupling one-way (hitbox -> hurtbox -> dummy) without referencing
-	# TargetDummy. No scene-tree mutation, so no call_deferred is required.
+	# The one-shot signal covers targets whose overlap begins mid-window; the
+	# per-frame scan covers targets that were already overlapping when the
+	# window opened (see _scan_hit_area). Both funnel through _deliver_hit.
 	if not _window_active or not (area is Hurtbox):
 		return
-	var hurtbox: Hurtbox = area as Hurtbox
+	_deliver_hit(area as Hurtbox)
+
+
+func _scan_hit_area() -> void:
+	# The player is movement-locked during an attack, so a stationary HitArea
+	# never re-enters a target it already overlapped: the area_entered signal
+	# was consumed before the window opened and never fires again. While the
+	# window is active, poll the current overlaps each physics frame so those
+	# targets are still delivered, with the same once-per-window dedup.
+	if not _window_active or hit_area == null:
+		return
+	for area: Area3D in hit_area.get_overlapping_areas():
+		if not (area is Hurtbox):
+			continue
+		_deliver_hit(area as Hurtbox)
+
+
+func _deliver_hit(hurtbox: Hurtbox) -> void:
+	# Deliver once per active window to each Hurtbox. The typed check keeps the
+	# coupling one-way (hitbox -> hurtbox -> dummy) without referencing
+	# TargetDummy. receive_hit only emits a signal and the dummy's take_damage
+	# mutates properties (its feedback is already call_deferred), so no
+	# scene-tree mutation runs here and no call_deferred is required.
 	if _hit_targets.has(hurtbox):
 		return
 	_hit_targets.append(hurtbox)
