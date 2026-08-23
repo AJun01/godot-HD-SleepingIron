@@ -1,7 +1,7 @@
 """
 Character-sheet → Godot SpriteFrames pipeline CLI.
 
-Loads a 12-row character sheet, optionally cleans it (Gemini watermark removal,
+Loads a character sheet, optionally cleans it (Gemini watermark removal,
 white-to-alpha), splits the grid, skips fully-transparent blank cells, writes
 per-row cleaned frame PNGs and a composed sheet, and emits a Godot 4.7
 SpriteFrames .tres. Also renders the blank authoring template and a labeled
@@ -39,9 +39,9 @@ def _load_map(map_path: Path) -> dict:
     with map_path.open("r", encoding="utf-8") as fh:
         data = json.load(fh)
     rows = data.get("rows")
-    if not isinstance(rows, list) or len(rows) != 12:
+    if not isinstance(rows, list) or len(rows) == 0:
         count = len(rows) if isinstance(rows, list) else "none"
-        _fail(f"Map must define exactly 12 rows, got {count}: {map_path}")
+        _fail(f"Map must define at least one row, got {count}: {map_path}")
     return data
 
 
@@ -230,9 +230,9 @@ def _process_sheet(args: argparse.Namespace, project_root: Path, map_data: dict)
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Process a 12-row character sheet into Godot SpriteFrames, or render template/placeholder sheets."
+        description="Process a character sheet into Godot SpriteFrames, or render template/placeholder sheets."
     )
-    parser.add_argument("--input", help="Input character-sheet PNG (12 rows x 6 columns of 256px cells).")
+    parser.add_argument("--input", help="Input character-sheet PNG (columns x rows of 256px cells per the map).")
     parser.add_argument("--output-dir", help="Output directory. Default: assets/sprites/<input-stem>/ under --project-root.")
     parser.add_argument("--map", default=str(MAP_PATH), help="Editable mapping table JSON. Default: character_sheet_map.json next to this script.")
     parser.add_argument("--speed", type=float, default=10.0, help="Animation speed in fps (10 -> 100 ms/frame). Default: 10.")

@@ -1,11 +1,11 @@
 class_name PlayerAnimator
 extends Node3D
-## Composable animation machine (idle/run/jump/fall/land plus the seven combat
-## states) that reads the player's physics state and drives a billboarded
+## Composable animation machine (idle/walk/run/jump/fall/land plus the seven
+## combat states) that reads the player's physics state and drives a billboarded
 ## AnimatedSprite3D. Combat states are one-shots started by play_combat_state and
 ## held until the animation finishes; the four attack states also track a
 ## hit-window phase (wind_up/active/recovery) each frame. A preview mode
-## (play_preview/stop_preview) forces one of the 12 SpriteFrames animations past
+## (play_preview/stop_preview) forces one of the 13 SpriteFrames animations past
 ## the physics-derived mapping, for the arena animation-preview zone. One-way
 ## dependency: the animator reads the player; the player never references the
 ## animator (design.md). flip_h mirrors the right-facing sheet; the separate
@@ -18,6 +18,7 @@ signal state_changed(state: StringName)
 signal phase_changed(state: StringName, phase: StringName)
 
 const STATE_IDLE: StringName = &"idle"
+const STATE_WALK: StringName = &"walk"
 const STATE_RUN: StringName = &"run"
 const STATE_JUMP: StringName = &"jump"
 const STATE_FALL: StringName = &"fall"
@@ -121,7 +122,7 @@ func _desired_state() -> StringName:
 			_land_pending = false
 			return STATE_LAND
 		if Vector2(player.velocity.x, player.velocity.z) != Vector2.ZERO:
-			return STATE_RUN
+			return STATE_RUN if player.running else STATE_WALK
 		return STATE_IDLE
 	# Hysteresis on the jump->fall edge: once JUMP, hold JUMP until velocity.y
 	# drops below jump_fall_threshold, so apex oscillation around zero does not

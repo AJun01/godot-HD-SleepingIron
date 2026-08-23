@@ -25,7 +25,8 @@ var movement_override: Vector2 = Vector2.ZERO
 
 ## RUN tier active: a same-direction double-tap within the window upgraded the
 ## held direction from walk to run; cleared when movement input returns to zero.
-var _run_active: bool = false
+## Public so the animator reads it one-way for walk vs run animation mapping.
+var running: bool = false
 
 ## Direction of the most recent fresh direction-key press (unit Vector2), used
 ## to detect a same-direction double-tap.
@@ -44,7 +45,7 @@ func _physics_process(delta: float) -> void:
 	# Zero input means the player let go: clear the run tier and the last press
 	# so the next hold starts as walk (release + re-hold = walk again).
 	if direction == Vector2.ZERO:
-		_run_active = false
+		running = false
 		_last_dir_key = Vector2.ZERO
 	_update_facing(direction.x)
 	_apply_horizontal_velocity(direction, delta)
@@ -91,7 +92,7 @@ func _track_double_tap(event: InputEvent) -> void:
 	var window_ms: int = int(PLAYER_CONFIG.double_tap_window * 1000.0)
 	# Two fresh presses of the SAME direction within the window arm the RUN tier.
 	if dir == _last_dir_key and now_ms - _last_dir_press_ms <= window_ms:
-		_run_active = true
+		running = true
 	_last_dir_key = dir
 	_last_dir_press_ms = now_ms
 
@@ -126,7 +127,7 @@ func _apply_horizontal_velocity(direction: Vector2, delta: float) -> void:
 		return
 	if direction != Vector2.ZERO:
 		# Run tier when a same-direction double-tap armed it; otherwise walk.
-		var speed: float = PLAYER_CONFIG.move_speed if _run_active else PLAYER_CONFIG.walk_speed
+		var speed: float = PLAYER_CONFIG.move_speed if running else PLAYER_CONFIG.walk_speed
 		var target: Vector2 = direction * speed
 		velocity.x = move_toward(velocity.x, target.x, PLAYER_CONFIG.acceleration * delta)
 		velocity.z = move_toward(velocity.z, target.y, PLAYER_CONFIG.acceleration * delta)

@@ -1,9 +1,10 @@
 {
   "cell_width": 256,
   "cell_height": 256,
-  "columns": 6,
+  "columns": 8,
   "rows": [
     {"name": "idle", "loop": true, "frames": 4},
+    {"name": "walk", "loop": true, "frames": 8},
     {"name": "run", "loop": true, "frames": 6},
     {"name": "jump", "loop": false, "frames": 3},
     {"name": "fall", "loop": true, "frames": 3},
