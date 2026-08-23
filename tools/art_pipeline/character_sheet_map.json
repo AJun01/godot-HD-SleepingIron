@@ -1,6 +1,7 @@
 {
   "cell_width": 256,
   "cell_height": 256,
+  "palette_colors": 64,
   "sets": {
     "alert": {
       "columns": 16,

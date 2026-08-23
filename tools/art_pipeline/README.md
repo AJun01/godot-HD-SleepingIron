@@ -24,6 +24,17 @@ both composed sheets back to the user's working directory (`<src parent>/charact
 for alert and `character_sheet_nonalert.png` for non_alert); opt out with
 `--no-write-user-sheets`.
 
+### Palette unification (per-frame color filter)
+
+When the map's top-level `palette_colors` is a positive integer (currently `64`), a global
+palette is extracted from all opaque pixels of both sets with Pillow median cut, then every
+frame is remapped onto it with 4×4 Bayer ordered dithering (nearest + second-nearest palette
+color per pixel). This pins all frames to one shared palette so hand-cleaned frames stop
+drifting 3–5 RGB units between frames. The palette is cached to
+`<src parent>/palette_<N>.png` and reused on later runs, so adding new frames later never
+shifts old frames' colors; `--refresh-palette` forces re-extraction. `palette_colors` `0` or
+absent disables the filter.
+
 ```bash
 # Process the user's hand-cleaned frames (defaults to the Desktop 素材 out_user/frames path)
 python tools/art_pipeline/compose_from_user_frames.py
@@ -41,6 +52,7 @@ python tools/art_pipeline/compose_from_user_frames.py \
 | `--project-root` | Project root for output paths and `res://` computation. Default: current directory. |
 | `--map` | Editable mapping table. Default: `character_sheet_map.json` next to this script. |
 | `--write-user-sheets` | Write the composed sheets back to `<src parent>/character_sheet(_left).png`. Default: true; `--no-write-user-sheets` opts out. |
+| `--refresh-palette` | Re-extract the global palette instead of reusing `<src parent>/palette_<N>.png`. |
 
 It fails fast when an action in the map has no frames, any frame is not PNG, or an action
 overflows the grid width.
