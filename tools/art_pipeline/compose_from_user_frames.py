@@ -11,6 +11,9 @@ NEAREST-resizes any non-256px frame to 256x256, then writes:
 - mirrored left frames ``<src>/../frames_left/<action>/<action>_NNN.png``
 - ``player_sheet.png`` (right) and ``player_left_sheet.png`` (mirrored), laid out
   as ``columns`` x ``len(map rows)`` 256px cells
+- the same two sheets written back to the user's working directory as
+  ``<src parent>/character_sheet.png`` and ``<src parent>/character_sheet_left.png``
+  (opt out with ``--no-write-user-sheets``)
 - ``player_frames.tres`` / ``player_left_frames.tres`` via
   ``godot_format.generate_sprite_frames_tres`` with the existing UIDs pinned
 
@@ -98,6 +101,13 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Project root for output paths and res:// computation. Default: current directory.")
     parser.add_argument("--map", default=str(MAP_PATH),
                         help="Editable mapping table JSON. Default: character_sheet_map.json next to this script.")
+    parser.add_argument(
+        "--write-user-sheets",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Write the composed sheets back to <src parent>/character_sheet(_left).png. "
+             "Default: true; pass --no-write-user-sheets to skip.",
+    )
     return parser
 
 
@@ -167,6 +177,14 @@ def main(argv: list[str] | None = None) -> int:
     sheet_path = save_image(sheet, player_dir / "player_sheet.png")
     left_path = save_image(sheet_left, player_dir / "player_left_sheet.png")
 
+    # Keep the user's working dir in sync: mirror the composed sheets back so the
+    # stale out_user/character_sheet*.png files match what the project consumes.
+    user_sheet_path: Path | None = None
+    user_left_path: Path | None = None
+    if args.write_user_sheets:
+        user_sheet_path = save_image(sheet, src.parent / "character_sheet.png")
+        user_left_path = save_image(sheet_left, src.parent / "character_sheet_left.png")
+
     right_tres = player_dir / "player_frames.tres"
     left_tres = player_dir / "player_left_frames.tres"
     right_tres.write_text(generate_sprite_frames_tres(
@@ -195,6 +213,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  frames_left:  {frames_left_root}")
     print(f"  .tres (right): {right_tres}  uid={RIGHT_UID}")
     print(f"  .tres (left):  {left_tres}  uid={LEFT_UID}")
+    if user_sheet_path is not None and user_left_path is not None:
+        print(f"  sheet (user right): {user_sheet_path}")
+        print(f"  sheet (user left):  {user_left_path}")
     for name in (r["name"] for r in rows):
         print(f"    {name}: {len(all_frames[name])} frames")
     return 0

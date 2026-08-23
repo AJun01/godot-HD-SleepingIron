@@ -16,7 +16,9 @@ This is the official pipeline for the user's hand-cleaned per-action frame folde
 is its own directory of PNGs, e.g. `idle/idle_000.png`, `walk/frame_000.png`). It formalizes the
 previous ad-hoc rebuild: it NEAREST-resizes any non-256px frame to 256×256, writes the flat
 project frames and the mirrored `frames_left` folders, composes both sheets at `columns` ×
-`len(rows)` cells, and emits both `.tres` with the existing UIDs pinned.
+`len(rows)` cells, and emits both `.tres` with the existing UIDs pinned. It also writes the two
+composed sheets back to the user's working directory (`<src parent>/character_sheet.png` and
+`character_sheet_left.png`) so `out_user/` stays in sync; opt out with `--no-write-user-sheets`.
 
 ```bash
 # Process the user's hand-cleaned frames (defaults to the Desktop 素材 out_user/frames path)
@@ -34,6 +36,7 @@ python tools/art_pipeline/compose_from_user_frames.py \
 | `--src` | Directory of per-action frame subdirectories. Default: the out_user/frames path. |
 | `--project-root` | Project root for output paths and `res://` computation. Default: current directory. |
 | `--map` | Editable mapping table. Default: `character_sheet_map.json` next to this script. |
+| `--write-user-sheets` | Write the composed sheets back to `<src parent>/character_sheet(_left).png`. Default: true; `--no-write-user-sheets` opts out. |
 
 It fails fast when an action in the map has no frames, any frame is not square, or an action
 overflows the grid width.
