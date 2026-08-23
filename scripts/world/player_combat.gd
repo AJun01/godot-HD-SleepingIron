@@ -79,6 +79,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	# (design.md §9), so attacks and dodges stay inert mid-beat.
 	if DialogueService.is_open():
 		return
+	# Safe areas ignore combat inputs: outside an alert zone the animator reports
+	# alert_mode false and both attack and dodge are dropped before buffering.
+	# One-way read (combat reads the animator); no reverse reference added.
+	if animator == null or not animator.alert_mode:
+		return
 	if event.is_action_pressed(&"attack") and not event.is_echo():
 		_buffer_action(Action.ATTACK)
 	elif event.is_action_pressed(&"dodge") and not event.is_echo():

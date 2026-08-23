@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3]
+[gd_scene load_steps=44 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/world/side_view_camera.gd" id="2_camera"]
@@ -13,6 +13,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/placeholder_beep_high.wav" id="12_beep_high"]
 [ext_resource type="PackedScene" path="res://scenes/actors/target_dummy.tscn" id="13_dummy_scene"]
 [ext_resource type="Script" path="res://scripts/dev/combat_range_zone.gd" id="14_combat_zone"]
+[ext_resource type="Script" path="res://scripts/dev/alert_zone.gd" id="15_alert_zone"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -99,6 +100,9 @@ albedo_color = Color(0.72, 0.55, 0.28, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape_zone"]
 size = Vector3(18, 2, 14)
+
+[sub_resource type="BoxShape3D" id="BoxShape_combat_zone"]
+size = Vector3(16, 3, 6)
 
 [sub_resource type="StandardMaterial3D" id="Material_pad_dialogue"]
 albedo_color = Color(0.25, 0.5, 0.5, 1)
@@ -302,6 +306,18 @@ max_hp = 30.0
 [node name="ZonePillar" parent="Zones/CombatRange" instance=ExtResource("3_pillar")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7)
 title = "Combat Range"
+
+[node name="CombatZone" type="Node3D" parent="Zones/CombatRange"]
+script = ExtResource("15_alert_zone")
+animator_path = NodePath("../../../Player/Animator")
+
+[node name="ZoneBoundary" type="Area3D" parent="Zones/CombatRange/CombatZone"]
+collision_layer = 3
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zones/CombatRange/CombatZone/ZoneBoundary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -1)
+shape = SubResource("BoxShape_combat_zone")
 
 [node name="UiHudZone" type="Node3D" parent="Zones"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)

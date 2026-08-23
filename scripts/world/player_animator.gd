@@ -42,6 +42,14 @@ const PHASE_RECOVERY: StringName = &"recovery"
 ## PLAYER_CONFIG so phase tracking works before the scene-wiring task.
 const COMBAT_CONFIG: CombatConfig = preload("res://resources/combat_config.tres")
 
+## Alert (combat) animation set: all 13 animations including the combat one-shots.
+const ALERT_FRAMES: SpriteFrames = preload("res://assets/sprites/player/player_frames.tres")
+
+## Non-alert (safe-area) animation set: 6 locomotion/air animations, no combat.
+const NONALERT_FRAMES: SpriteFrames = preload(
+	"res://assets/sprites/player/player_frames_nonalert.tres"
+)
+
 ## Player whose physics state drives the animation. Wired in the scene via
 ## @export dependency injection (AGENTS.md rule #2).
 @export var player: Player
@@ -62,6 +70,10 @@ const COMBAT_CONFIG: CombatConfig = preload("res://resources/combat_config.tres"
 ## frame; this negative threshold keeps "jump" until the body is truly
 ## descending.
 @export var jump_fall_threshold: float = -0.5
+
+## Alert mode: true while inside a combat zone (combat animation set), false in
+## safe areas (non-alert set). Public so PlayerCombat reads it one-way.
+var alert_mode: bool = false
 
 var _current_state: StringName = STATE_IDLE
 ## Current hit-window phase; PHASE_NONE unless an attack state is active.
@@ -135,10 +147,42 @@ func _desired_state() -> StringName:
 
 
 func _apply_state(state: StringName) -> void:
+	if sprite == null:
+		return
 	_current_state = state
+	# Swap the sprite's frame set before assigning the animation, so a combat
+	# one-shot never targets a name missing from the non_alert set.
+	sprite.sprite_frames = _mode_frames()
 	sprite.animation = state
 	sprite.play()
 	state_changed.emit(state)
+
+
+func set_alert_mode(enabled: bool) -> void:
+	if alert_mode == enabled:
+		return
+	alert_mode = enabled
+	if sprite == null:
+		return
+	# A preview always plays the alert set, so a mode swap during a preview is
+	# deferred to stop_preview (which re-applies the mode-appropriate set).
+	if not _preview_animation.is_empty():
+		return
+	# Combat one-shots do not exist in the non_alert set; when the mode flips
+	# mid-one-shot, snap back to the physics-desired state immediately (idle is
+	# the null-safe fallback while the player reference is unresolved).
+	if _is_combat_state(_current_state):
+		_apply_state(_desired_state() if player != null else STATE_IDLE)
+	else:
+		_apply_state(_current_state)
+
+
+func _mode_frames() -> SpriteFrames:
+	# Preview forces the alert set (combat animations live there); otherwise the
+	# active mode's set is used.
+	if not _preview_animation.is_empty() or alert_mode:
+		return ALERT_FRAMES
+	return NONALERT_FRAMES
 
 
 func play_preview(animation: StringName) -> void:
@@ -175,6 +219,11 @@ func play_combat_state(state: StringName) -> void:
 	# Ignore non-combat names: this entry point starts combat one-shots only
 	# (physics states come from _desired_state, previews from play_preview).
 	if not _is_combat_state(state):
+		return
+	# Combat one-shots do not exist in the non_alert set; drop a request that
+	# would point the sprite at a missing animation (e.g. a buffered press
+	# consumed just after the player left the combat zone).
+	if not alert_mode:
 		return
 	_apply_state(state)
 
