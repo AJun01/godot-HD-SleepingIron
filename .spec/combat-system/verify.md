@@ -1,0 +1,376 @@
+# Verify: Combat System
+
+## Status
+
+Status: PASS
+
+## Summary
+
+Verified the `combat-system` feature end-to-end against `scope.md` / `design.md` /
+`tasks.index.md` (tasks 001–006). All six tasks are implemented in six
+conventional-commit commits; the full gate suite (gdlint + headless editor +
+boot/arena smoke runs) is clean; a 33-assertion headless functional probe
+confirmed the combat range is playable — combo + hit windows verifiable against
+dummies (dummies take damage, die, and reset).
+
+## Acceptance criteria
+
+### Headless gates (scope.md / task 006)
+
+- [x] `gdlint .` reports 0 problems — `Success: no problems found` (run as
+  `/Users/aj/.local/bin/gdlint .`; `gdlint` is installed but not on this shell's
+  PATH).
+- [x] `godot --headless --editor --path . --quit-after 10` — exit 0; grep for
+  `ERROR:` / `SCRIPT ERROR` / `Parse Error` / `Failed loading` is empty.
+- [x] `godot --headless --path . --quit-after 5 scenes/boot.tscn` — exit 0; grep
+  empty.
+- [x] `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` — exit 0;
+  grep empty.
+
+### Gameplay-observable criteria (scope.md §Acceptance criteria)
+
+- [x] Ground combo `attack_1 → attack_2 → attack_3` — `PlayerCombat.combo_step`
+  0..3 + cancel-window advancement (`_advance_combo`, `is_cancel_window_open`),
+  0.15 s single-slot buffer, 0.4 s `chain_timeout` (`player_combat.gd:220-263`,
+  `player_animator.gd:199-218`). Probe: `play_combat_state` holds `attack_1`,
+  phase reaches `active`, returns to `idle` on `animation_finished`.
+- [x] `attack_air` fires airborne, never a ground step —
+  `_try_attack`/`_start_air_attack` reset `combo_step=0` and play
+  `STATE_ATTACK_AIR` (`player_combat.gd:184-188,245-251`).
+- [x] Dodge displacement + full invincibility + 0.5 s cooldown — `_start_dodge`
+  records facing, `_dodge_timer=dodge_duration`, `_invincible=true`;
+  `_update_dodge` writes `movement_override`; `_end_dodge` sets
+  `dodge_cooldown` (`player_combat.gd:266-293`). Probe confirmed
+  `is_invincible()` true at start, false after `dodge_duration`.
+- [x] Dummies flash on hit, health bar decrements, die at 0 HP, auto-reset 2 s —
+  `target_dummy.gd` hit-flash Tween, `scale.x` fill tracking `hp/max_hp`,
+  `_enter_dead_state` (hurtbox disabled + bar hidden), `reset()` + `reset_delay`
+  timer. Probe: HP 100→65→25→0 on 35/40/50 dmg, dead guard, `reset()`, and
+  auto-reset. Three dummies use max HP 100/60/30 (`arena.tscn:292,296,300`).
+- [x] `hit`/`death` playable via the animator preview path only (no trigger
+  source) — `STATE_HIT`/`STATE_DEATH` are combat one-shots returned to `idle` on
+  finish; `play_preview`/`stop_preview` preserved.
+- [x] Existing five-state mapping + preview mode unchanged — verified by diff:
+  `_desired_state()`, `play_preview`, `stop_preview`, `_on_player_landed` are
+  byte-equivalent; the `_process` hold branch is an additive `_is_combat_state`
+  guard plus a no-op `_update_phase()` for non-attack states.
+- [x] Movement/jump feel unchanged — `resources/player_config.tres` still
+  `move_speed=7.0, acceleration=60.0, friction=70.0, gravity=22.0,
+  jump_velocity=8.5, jump_buffer_time=0.1, jump_cut_factor=0.5`; the new
+  `movement_locked`/`movement_override` default `false`/`Vector2.ZERO`.
+- [x] Combat inputs inert while a dialogue is open —
+  `player_combat.gd:80` returns early on `DialogueService.is_open()` (same gate
+  as movement/jump).
+
+## Functional probe (headless, temporary `--script`-style run)
+
+Ran a temporary scene `res://_verify_probe.tscn` (deleted afterwards) via
+`godot --headless --path . --quit-after 1200 res://_verify_probe.tscn` → exit 0,
+**33/33 checks PASS**:
+
+- Config mapping: `attack_1/2/3/air` damage `35/40/50/40`, hit-window interval
+  `[2,3]` inclusive.
+- Arena wiring: three `TargetDummy` instances, `max_hp 100/60/30`, body layer
+  1/mask 2, hurtbox layer 5/mask 4, X positions -5/0/5.
+- `PlayerCombat` DI: `player`/`animator`/`hit_area` resolved; `HitArea` layer
+  4/mask 5.
+- Dummy chain: 100→65→25→0 (35/40/50 dmg), dead guard, `reset()`, auto-reset.
+- Hit-window delivery once-per-window with config damage (window open/close +
+  `_on_hit_area_entered`).
+- Animator→combat integration: `play_combat_state(attack_1)` holds the state,
+  phase reaches `active` → `PlayerCombat` opens its hit window, one-shot returns
+  to `idle`, window closes.
+- Dodge: `is_invincible()` true on start, false after `dodge_duration`.
+
+## Gate results (exact outputs)
+
+| Gate | Command | Result |
+|------|---------|--------|
+| Lint | `/Users/aj/.local/bin/gdlint .` | `Success: no problems found` (0 problems) |
+| Editor import | `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| Boot smoke | `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+| Arena smoke | `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| Functional probe | `godot --headless --path . --quit-after 1200 res://_verify_probe.tscn` | exit 0; 33/33 PASS |
+
+## Git hygiene
+
+- Six commits, one task = one commit, conventional Chinese messages:
+  - `daffbb6` `feat(combat): 添加 attack/dodge 输入与战斗配置、命中窗口资源`
+  - `0d63340` `feat(combat): 扩展 player_animator 增加战斗状态与阶段追踪`
+  - `bdf8b3d` `feat(combat): 新增 PlayerCombat 组件、Hurtbox 接收器与玩家移动锁定接口`
+  - `8d87d78` `feat(combat): 在 player.tscn 接入 Combat 节点与攻击命中区域`
+  - `d384661` `feat(combat): 将竞技场假人替换为可命中的 TargetDummy 并接入战斗范围控制器`
+  - `52030f9` `docs(combat): 注册战斗系统产物清单并完成全量无头与 lint 门禁验证`
+- No unrelated changes: each commit's file list is scoped to its task
+  (`git show --stat` verified).
+- Minor deviation (cosmetic only): `tasks/004-player-wiring.md` was not included
+  in its implementation commit `8d87d78` (which changed only
+  `scenes/actors/player.tscn`); the task file itself is complete and is committed
+  now with the verify/docs commit. Implementation code is correct and unaffected.
+- Working tree ends clean after the verify/docs commit (spec artifacts were
+  untracked and are committed here).
+
+## Convention compliance (AGENTS.md)
+
+- Static typing everywhere: HONORED — every new/modified script is fully
+  annotated (`player_animator.gd`, `player_combat.gd`, `player.gd`, `hurtbox.gd`,
+  `target_dummy.gd`, `combat_range_zone.gd`, `hit_window.gd`, `combat_config.gd`).
+- Signals/DI, never `get_node("../../...")`: HONORED — `@export` + defensive
+  `NodePath` fallbacks throughout; `Hurtbox.hit_received` typed signal keeps the
+  hitbox→hurtbox→dummy coupling one-way.
+- Composition over inheritance: HONORED — small single-responsibility
+  composables (`PlayerAnimator`, `PlayerCombat`, `Hurtbox`, `TargetDummy`,
+  `combat_range_zone`); no god script.
+- Tunables in Resources / `@export`: HONORED — `CombatConfig`/`HitWindow`/dummy
+  HP/flash/reset are all Resource or `@export` values; no hardcoded gameplay
+  values in scripts.
+- `call_deferred` for tree mutation from signal callbacks: HONORED —
+  `target_dummy.gd:87` (`_apply_hit_feedback.call_deferred()`) and
+  `combat_range_zone.gd:59` (`_reset_dummies.call_deferred()`).
+- Explicit collision layers/masks: HONORED — player body 2/1, `HitArea` 4/5,
+  dummy body 1/2, `Hurtbox` 5/4, reset pad 3/2; `project.godot` layer names
+  `hitbox=4`/`hurtbox=5`; layers 1/2/3 never repurposed.
+- Naming: HONORED — snake_case files, PascalCase nodes/classes, `class_name` only
+  for the globally-registered classes (`Player`, `PlayerAnimator`, `PlayerCombat`,
+  `Hurtbox`, `TargetDummy`, `CombatConfig`, `HitWindow`).
+- HD-2D invariants: HONORED — billboarded `Sprite3D`/`Label3D`/health-bar quads;
+  placeholder dummy SVG reused, no numbers baked into the health bar (dynamic
+  fill).
+- Invariants preserved: five-state mapping + preview mode additive-only (diff
+  verified); `PlayerConfig` values untouched; collision layers 1/2/3 meanings
+  unchanged.
+
+## Limitations
+
+- `hit`/`death` are states only — verified via the animator preview/one-shot
+  path; no player HP or damage source exists by design (scope Q3, out of scope).
+- The hit-window *logic* (phase → window open/close → config damage delivery
+  once-per-window → dummy damage/death/reset) is verified deterministically;
+  the final per-frame physics *overlap* between the positioned `HitArea` and a
+  dummy `Hurtbox` during a live animation is exercised by the arena smoke run +
+  matching layers 4/5, not by a deterministic headless overlap assertion.
+- Visual polish is placeholder-level by design (dummy = reused SVG placeholder,
+  health bar = two billboard quads, hit-flash = modulate pulse) — final art is
+  the human developer's job per AGENTS.md.
+
+## PR
+
+- Target branch: master
+- PR opened: yes (see session report)
+
+## Fix round 1 re-verification
+
+Re-verified the three post-review fixes (fix-001/002/003) against their
+acceptance criteria after the fix commits landed on `feature/combat-system`.
+
+### Per-fix verdicts
+
+- **fix-001 (air attack mobility): PASS** — `_start_air_attack()` no longer calls
+  `_lock_movement()` (`player_combat.gd:245-252`); `_start_ground_attack()` and
+  `_advance_combo()` still lock (`:242`, `:264`); dodge `movement_override`
+  still wins in `_apply_horizontal_velocity` (`player.gd:117`).
+- **fix-002 (walk/run two-tier): PASS** — `PlayerConfig` adds `walk_speed=3.5`
+  and `double_tap_window=0.25` (`player_config.gd`, `player_config.tres`);
+  `player.gd` has echo-filtered per-direction double-tap tracking, run reset on
+  zero input, tier-aware target speed, and lock/override branch order preserved.
+- **fix-003 (arena text legibility): PASS** — `zone_pillar.tscn` Label3D 22/3;
+  both `arena.tscn` StatusLabels 22/3; six pillar `paths` lines removed (title +
+  responsibility only); dummy `HealthBar` (mesh quads, no text) untouched.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `gdlint .` | 0 problems (`Success: no problems found`) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+
+### Functional probe
+
+Temporary headless probe (`res://_verify_fix_probe.tscn`, deleted afterwards):
+**30/30 PASS, 0 FAIL**. Verified PlayerConfig values (walk 3.5 / run 7.0 /
+window 0.25 + preserved defaults), ground attack locks vs air attack does not,
+dodge override beats lock, locked velocity decay, walk→run→walk target-speed
+transitions, per-direction and opposite-direction double-tap, and echo filtering.
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_screenshot.tscn` opened a Metal window
+(Apple M2 Pro) and saved two 3456×2104 viewport screenshots:
+`/tmp/combat-fix-arena-1.png` (CombatRange dummies + status label) and
+`/tmp/combat-fix-arena-2.png` (CombatRange pillar). Temporary scripts deleted.
+
+### Residual note (non-blocking, docs pass)
+
+`design.md` §3.4/§5.3/§6 and the `player.gd` `movement_locked` doc-comment still
+list `attack_air` as a locking state; the runtime behavior is correct (air attack
+does not lock). These prose spots are deferred to the docs pass, per fix-001's
+"Design reference updates" note.
+
+### Overall
+
+Status: PASS
+
+## Fix round 2 re-verification
+
+Re-verified fix-004 (arena text final pass, commit `dc8ea15`) against its
+acceptance criteria in the real files, then re-ran the full gate suite and
+regenerated the vision-pass screenshots.
+
+### Per-criteria verification
+
+- **zone_pillar.tscn Label3D** — `font_size = 16`, `outline_size = 2`,
+  `width = 110`, `autowrap_mode = 2` all present (`zone_pillar.tscn:13-16`);
+  `pixel_size = 0.005`, `billboard = 1`, `fixed_size = true`,
+  `horizontal_alignment = 1`, `vertical_alignment = 1` preserved.
+- **arena.tscn StatusLabels** — both `StatusLabel` nodes (AnimationPreviewZone
+  `:202-212`, CombatRange `:264-274`) carry `font_size = 16`, `outline_size = 2`,
+  `width = 110`, `autowrap_mode = 2` at transform y = 2.2, with
+  `pixel_size`/`billboard`/`fixed_size`/alignments preserved.
+- **arena.tscn six ZonePillar instances** — all six are title-only: each has
+  `title = "…"` and transform only, no `responsibility = "…"` line
+  (MovementZone `:187-189`, AnimationPreviewZone `:250-252`, CombatRange
+  `:302-304`, UiHudZone `:314-316`, SaveLoadZone `:359-361`, AudioZone
+  `:405-407`). `zone_pillar.gd` `_compose_text()` skips empty `responsibility`,
+  so each pillar renders one short line.
+- **target_dummy.tscn QuadMesh_bar** — `size = Vector2(2, 0.3)` (`:11`),
+  `center_offset = Vector3(1, 0, 0)` unchanged, `HealthBar` root y = 2.7
+  unchanged, both billboard materials unchanged; fill still scales `scale.x`
+  only (`target_dummy.gd:_update_health_bar`).
+- **Lighting/camera untouched** — `git show dc8ea15` diff touches only
+  `scenes/dev/zone_pillar.tscn`, `scenes/act/arena.tscn`,
+  `scenes/actors/target_dummy.tscn`, and the fix-004 markdown log; `Sun`,
+  `WorldEnvironment`, and `SideViewCamera` are byte-identical.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `/Users/aj/.local/bin/gdlint .` | `Success: no problems found` (0 problems) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/actors/target_dummy.tscn` | exit 0; error grep empty |
+
+Grep target set (`ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`) empty
+in every run. No `.import` noise was produced, so nothing needed reverting.
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_fix_screenshot.tscn` opened a Metal
+window (Apple M2 Pro) and saved two 3456×2104 viewport screenshots via a
+temporary driver (deleted afterwards):
+`/tmp/combat-fix-arena-1.png` (combat range: dummies + status label) and
+`/tmp/combat-fix-arena-2.png` (pillar overview). Final on-screen text legibility
+remains a vision-pass judgment for the human/vision model.
+
+### Overall
+
+Status: PASS
+
+## Fix round 3 re-verification
+
+Re-verified fix-005 (combat-range status position, commit `4102a4c`) against its
+acceptance criteria in the real files, then re-ran the full gate suite and
+regenerated the two vision-pass screenshots.
+
+### fix-005 verdict: PASS
+
+- **`scenes/act/arena.tscn` CombatRange `StatusLabel`** — transform y = 3.6
+  (`arena.tscn:265`), x/z unchanged (`0, 0`); `billboard = 1` (`:266`),
+  `fixed_size = true` (`:267`), `pixel_size = 0.005` (`:268`),
+  `font_size = 16` (`:269`), `outline_size = 2` (`:270`), `width = 110`
+  (`:271`), `autowrap_mode = 2` (`:272`), both alignments `1` (`:273-274`) —
+  all exactly as specified (DD1).
+- **`scripts/dev/combat_range_zone.gd`** — `const HINT_TEXT: String =
+  "Attack (J) · Pad resets"` (`:10`) and `const RESET_TEXT: String =
+  "Dummies reset!"` (`:13`), both typed `String` consts; `_set_status()` and all
+  logic unchanged (DD2).
+- **`AnimationPreviewZone` `StatusLabel` untouched** at y = 2.2
+  (`arena.tscn:203`); `git show 4102a4c` diff touches only `arena.tscn` (2-line
+  transform change), `combat_range_zone.gd` (2 const strings), and the fix-005
+  markdown — no other zone, pillar, dummy, lighting, or camera property changed
+  (DD3). No per-frame positioning logic introduced.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `/Users/aj/.local/bin/gdlint .` (`gdlint` not on PATH) | `Success: no problems found` (0 problems) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+
+Grep target set (`ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`)
+empty in every run. No `.import` noise was produced, so nothing needed reverting
+(working tree stayed clean before the docs commit).
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_screenshot.tscn` opened a Metal window
+(Apple M2 Pro, Forward+) and saved two 3456×2104 viewport screenshots via a
+temporary driver (deleted afterwards):
+`/tmp/combat-fix-arena-1.png` (CombatRange dummies + status label) and
+`/tmp/combat-fix-arena-2.png` (pillar overview). The relocated label renders
+above the pillar title and dummy bars; final on-screen legibility remains a
+vision-pass judgment for the human/vision model.
+
+### Overall
+
+Status: PASS
+
+## Fix round 4 re-verification
+
+Re-verified fix-006 (combat-range status depth alignment + centered dummy health
+bar, commit `8cfda92`) against its acceptance criteria in the real files, then
+re-ran the full gate suite and regenerated the two vision-pass screenshots.
+
+### fix-006 verdict: PASS
+
+- **`scenes/act/arena.tscn` CombatRange `StatusLabel`** — transform =
+  `(0, 4.2, -7)` (`arena.tscn:265`), so its z now matches the `ZonePillar` z
+  (`-7`, `arena.tscn:303`); `billboard = 1` (`:266`), `fixed_size = true`
+  (`:267`), `pixel_size = 0.005` (`:268`), `font_size = 16` (`:269`),
+  `outline_size = 2` (`:270`), `width = 110` (`:271`), `autowrap_mode = 2`
+  (`:272`), both alignments `1` (`:273-274`) — every other property intact
+  (DD1).
+- **`scenes/actors/target_dummy.tscn` `QuadMesh_bar`** — `center_offset =
+  Vector3(0, 0, 0)` (`:12`), `size = Vector2(2, 0.3)` unchanged (`:11`);
+  `HealthBar` root y = 2.7 (`:51`), `Background`/`Fill` both still share
+  `QuadMesh_bar` (`:54`, `:60`), `Fill` local z = 0.01 (`:59`) unchanged — the
+  HealthBar/Fill node structure is untouched (DD2).
+- **No scripts/lighting/camera touched** — `git show --stat 8cfda92` touches only
+  the two `.tscn` files and the fix-006 markdown log; the diff is exactly two
+  lines (arena transform y 3.6→4.2 / z 0→−7, dummy `center_offset` 1→0). `Sun`,
+  `WorldEnvironment`, and `SideViewCamera` are byte-identical; `target_dummy.gd`
+  fill logic is unchanged (DD2 note: the stale "left-anchored" comment is
+  out of scope, as specified).
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| `/Users/aj/.local/bin/gdlint .` (`gdlint` not on PATH) | `Success: no problems found` (0 problems) |
+| `godot --headless --editor --path . --quit-after 10` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/act/arena.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/boot.tscn` | exit 0; error grep empty |
+| `godot --headless --path . --quit-after 5 scenes/actors/target_dummy.tscn` | exit 0; error grep empty |
+
+Grep target set (`ERROR:`, `SCRIPT ERROR`, `Parse Error`, `Failed loading`)
+empty in every run. No `.import` noise was produced (working tree stayed clean
+before the docs commit), so nothing needed reverting.
+
+### Visual capture
+
+Non-headless `godot --path . res://_verify_screenshot.tscn` opened a Metal window
+(Apple M2 Pro, Forward+) and saved two 3456×2104 viewport screenshots via a
+temporary driver (deleted afterwards): `/tmp/combat-fix-arena-1.png` (CombatRange
+dummies + status label above the pillar title) and `/tmp/combat-fix-arena-2.png`
+(pillar overview, higher/pulled-back camera). Final on-screen text legibility and
+ordering remain a vision-pass judgment for the human/vision model (this verifier
+model cannot read images).
+
+### Overall
+
+Status: PASS

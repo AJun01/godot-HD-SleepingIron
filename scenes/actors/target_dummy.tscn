@@ -1,0 +1,62 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/target_dummy.gd" id="1_dummy_script"]
+[ext_resource type="Script" path="res://scripts/world/hurtbox.gd" id="2_hurtbox"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/placeholder_target_dummy.svg" id="3_dummy_sprite"]
+
+[sub_resource type="BoxShape3D" id="BoxShape_dummy"]
+size = Vector3(0.7, 2.2, 0.5)
+
+[sub_resource type="QuadMesh" id="QuadMesh_bar"]
+size = Vector2(2, 0.3)
+center_offset = Vector3(0, 0, 0)
+
+[sub_resource type="StandardMaterial3D" id="Material_bar_bg"]
+shading_mode = 0
+billboard_mode = 1
+cull_mode = 2
+albedo_color = Color(0.12, 0.12, 0.15, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_bar_fill"]
+shading_mode = 0
+billboard_mode = 1
+cull_mode = 2
+albedo_color = Color(0.85, 0.18, 0.18, 1)
+
+[node name="TargetDummy" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 2
+script = ExtResource("1_dummy_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_dummy")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+texture = ExtResource("3_dummy_sprite")
+billboard = 1
+pixel_size = 0.01
+
+[node name="Hurtbox" type="Area3D" parent="."]
+collision_layer = 5
+collision_mask = 4
+script = ExtResource("2_hurtbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_dummy")
+
+[node name="HealthBar" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7, 0)
+
+[node name="Background" type="MeshInstance3D" parent="HealthBar"]
+mesh = SubResource("QuadMesh_bar")
+material_override = SubResource("Material_bar_bg")
+cast_shadow = 0
+
+[node name="Fill" type="MeshInstance3D" parent="HealthBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
+mesh = SubResource("QuadMesh_bar")
+material_override = SubResource("Material_bar_fill")
+cast_shadow = 0

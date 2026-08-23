@@ -3,8 +3,17 @@ extends Resource
 ## Tunable movement + jump values for the side-view player (AGENTS.md rule #4:
 ## gameplay values live in Resources, never hardcoded in scripts).
 
-## Horizontal speed in units/second reached at full input deflection.
+## Horizontal speed (units/s) at full input deflection in the RUN tier
+## (double-tap). Existing 7.0 default unchanged.
 @export var move_speed: float = 7.0
+
+## Horizontal speed (units/s) at full input deflection in the WALK tier
+## (hold a direction). Lower than move_speed for DNF-style two-tier movement.
+@export var walk_speed: float = 3.5
+
+## Window (s) in which a second press of the SAME direction key upgrades
+## movement to the RUN tier.
+@export var double_tap_window: float = 0.25
 
 ## Acceleration toward move_speed in units/second^2; higher = snappier start.
 @export var acceleration: float = 60.0

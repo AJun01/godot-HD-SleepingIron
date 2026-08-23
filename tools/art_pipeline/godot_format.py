@@ -93,6 +93,7 @@ def generate_sprite_frames_tres(
     rows: int,
     columns: int,
     animations: list[dict] | None = None,
+    uid: str | None = None,
 ) -> str:
     """
     Generate a SpriteFrames .tres resource from a spritesheet.
@@ -103,8 +104,10 @@ def generate_sprite_frames_tres(
                   "columns": [0, 1, 2, 3]}, ...]
     where "columns" is the row's list of non-blank column indices (drives the
     per-animation frame count). If None, auto-generates one idle animation per row.
+    uid: optional pinned resource uid (default: a fresh random uid). Callers that
+    must keep an existing uid stable across regenerations pass it explicitly.
     """
-    uid = generate_uid()
+    uid = uid or generate_uid()
 
     lines = []
     lines.append(f'[gd_resource type="SpriteFrames" format=3 uid="{uid}"]')

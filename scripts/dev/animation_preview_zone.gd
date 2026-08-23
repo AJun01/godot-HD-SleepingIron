@@ -1,7 +1,7 @@
 extends Node3D
 ## Animation-preview zone controller (design.md AnimationPreviewZone). A small
 ## composable Node3D that drives the player's animator in preview mode: the
-## "next animation" pad cycles the 12 player SpriteFrames animations (wrapping)
+## "next animation" pad cycles the 13 player SpriteFrames animations (wrapping)
 ## and the "flip facing" pad mirrors the player's facing. The current animation
 ## name is written to a billboarded status Label3D. The pads are plain Area3D
 ## children on the interaction layer (3) detecting the player (mask 2); all
@@ -14,6 +14,7 @@ extends Node3D
 ## here for a predictable preview cycle.
 const ANIMATIONS: Array[StringName] = [
 	&"idle",
+	&"walk",
 	&"run",
 	&"jump",
 	&"fall",

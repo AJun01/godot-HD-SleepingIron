@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/config/combat_config.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/hit_windows/attack_1.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/hit_windows/attack_2.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/hit_windows/attack_3.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/hit_windows/attack_air.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+input_buffer_time = 0.15
+chain_timeout = 0.4
+cancel_recovery_threshold = 0.6
+dodge_speed = 12.0
+dodge_duration = 0.3
+dodge_cooldown = 0.5
+hit_box_size = Vector3(1, 1.6, 0.8)
+hit_box_offset = Vector3(0.7, 0, 0)
+attack_1_window = ExtResource("2")
+attack_2_window = ExtResource("3")
+attack_3_window = ExtResource("4")
+attack_air_window = ExtResource("5")
