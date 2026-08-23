@@ -1,20 +1,41 @@
 {
   "cell_width": 256,
   "cell_height": 256,
-  "columns": 8,
-  "rows": [
-    {"name": "idle", "loop": true, "frames": 6},
-    {"name": "walk", "loop": true, "frames": 8},
-    {"name": "run", "loop": true, "frames": 8},
-    {"name": "jump", "loop": false, "frames": 3},
-    {"name": "fall", "loop": true, "frames": 3},
-    {"name": "land", "loop": false, "frames": 4},
-    {"name": "attack_1", "loop": false, "frames": 6},
-    {"name": "attack_2", "loop": false, "frames": 6},
-    {"name": "attack_3", "loop": false, "frames": 6},
-    {"name": "attack_air", "loop": false, "frames": 6},
-    {"name": "hit", "loop": false, "frames": 6},
-    {"name": "dodge", "loop": false, "frames": 6},
-    {"name": "death", "loop": false, "frames": 6}
-  ]
+  "sets": {
+    "alert": {
+      "columns": 16,
+      "sheet": "assets/sprites/player/player_sheet.png",
+      "tres": "assets/sprites/player/player_frames.tres",
+      "uid": "uid://2k97uge7sf4w",
+      "rows": [
+        {"name": "idle", "loop": true, "speed": 10},
+        {"name": "walk", "loop": true, "speed": 10},
+        {"name": "run", "loop": true, "speed": 10},
+        {"name": "jump", "loop": false, "speed": 10, "columns": [0, 1, 2, 3]},
+        {"name": "land", "loop": false, "speed": 10, "from": "jump", "columns": [4, 5, 6, 7]},
+        {"name": "fall", "loop": true, "speed": 10, "from": "jump", "columns": [4, 5, 6, 7]},
+        {"name": "attack_1", "loop": false, "speed": 20},
+        {"name": "attack_2", "loop": false, "speed": 12.5},
+        {"name": "attack_3", "loop": false, "speed": 10},
+        {"name": "attack_air", "loop": false, "speed": 10},
+        {"name": "hit", "loop": false, "speed": 10},
+        {"name": "dodge", "loop": false, "speed": 10},
+        {"name": "death", "loop": false, "speed": 10}
+      ]
+    },
+    "non_alert": {
+      "columns": 8,
+      "sheet": "assets/sprites/player/player_sheet_nonalert.png",
+      "tres": "assets/sprites/player/player_frames_nonalert.tres",
+      "uid": "uid://1nkdmbjwrxi1",
+      "rows": [
+        {"name": "idle", "loop": true, "speed": 10},
+        {"name": "walk", "loop": true, "speed": 10},
+        {"name": "run", "loop": true, "speed": 10},
+        {"name": "jump", "loop": false, "speed": 10},
+        {"name": "land", "loop": false, "speed": 10},
+        {"name": "fall", "loop": true, "speed": 10, "from": "land"}
+      ]
+    }
+  }
 }

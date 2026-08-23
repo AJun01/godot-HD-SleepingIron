@@ -2,7 +2,8 @@
 
 Python 3.11+ tools (Pillow + NumPy only) that turn character animation art into per-action
 frame PNGs, a composed sheet, and a Godot 4.7 `SpriteFrames` `.tres`. Two entry points cover
-the two art sources; both read `character_sheet_map.json` (now a 13-row × 8-column grid).
+the two art sources; both read `character_sheet_map.json` (now a `sets` structure: `alert`
+16 columns, `non_alert` 8 columns).
 
 ## Install
 
@@ -12,13 +13,16 @@ pip install pillow numpy
 
 ## `compose_from_user_frames.py` — hand-cleaned frames (official)
 
-This is the official pipeline for the user's hand-cleaned per-action frame folders (each action
-is its own directory of PNGs, e.g. `idle/idle_000.png`, `walk/frame_000.png`). It formalizes the
-previous ad-hoc rebuild: it NEAREST-resizes any non-256px frame to 256×256, writes the flat
-project frames and the mirrored `frames_left` folders, composes both sheets at `columns` ×
-`len(rows)` cells, and emits both `.tres` with the existing UIDs pinned. It also writes the two
-composed sheets back to the user's working directory (`<src parent>/character_sheet.png` and
-`character_sheet_left.png`) so `out_user/` stays in sync; opt out with `--no-write-user-sheets`.
+This is the official pipeline for the user's hand-cleaned per-action frame folders, now split
+into two sets (`<src>/alert/<action>/` and `<src>/non_alert/<action>/`). It center-crops any
+non-square frame by the shorter side, then NEAREST-resizes every frame to 256×256; per-animation
+`loop`/`speed` come from the map row (`from` resolves an alternative source action, `columns`
+slices its frames). For each set it writes the flat project frames under
+`frames/<set>/`, the mirrored `frames_left/<set>/<action>/` folders, the set's sheet at
+`columns` × `len(rows)` cells, and the set's `.tres` with the map's pinned uid. It also writes
+both composed sheets back to the user's working directory (`<src parent>/character_sheet.png`
+for alert and `character_sheet_nonalert.png` for non_alert); opt out with
+`--no-write-user-sheets`.
 
 ```bash
 # Process the user's hand-cleaned frames (defaults to the Desktop 素材 out_user/frames path)
@@ -38,7 +42,7 @@ python tools/art_pipeline/compose_from_user_frames.py \
 | `--map` | Editable mapping table. Default: `character_sheet_map.json` next to this script. |
 | `--write-user-sheets` | Write the composed sheets back to `<src parent>/character_sheet(_left).png`. Default: true; `--no-write-user-sheets` opts out. |
 
-It fails fast when an action in the map has no frames, any frame is not square, or an action
+It fails fast when an action in the map has no frames, any frame is not PNG, or an action
 overflows the grid width.
 
 ## `process_character_sheet.py` — pre-composed sheet (legacy)
@@ -81,19 +85,19 @@ python tools/art_pipeline/process_character_sheet.py --make-placeholder-sheet --
 
 ## Outputs
 
-- `<output-dir>/frames/<animation>_<nnn>.png` — per-row frames (right-facing).
-- `<src>/../frames_left/<animation>/<animation>_<nnn>.png` — mirrored left frames (compose script only).
-- `<output-dir>/<stem>_sheet.png` — composed sheet (right-facing).
-- `<output-dir>/<stem>_left_sheet.png` — mirrored sheet (compose script writes `player_left_sheet.png`).
-- `<output-dir>/<stem>_frames.tres` — Godot `SpriteFrames` resource.
+- `<output-dir>/frames/<set>/<animation>_<nnn>.png` — per-set per-row frames (right-facing).
+- `<src>/../frames_left/<set>/<animation>/<animation>_<nnn>.png` — mirrored left frames (compose script only).
+- `assets/sprites/player/player_sheet.png` / `player_sheet_nonalert.png` — composed sheets (right-facing).
+- `assets/sprites/player/player_frames.tres` / `player_frames_nonalert.tres` — Godot `SpriteFrames` resources.
 
 ## Mapping table
 
-`character_sheet_map.json` is the single editable source: `cell_width`/`cell_height` (256),
-`columns` (8), and an ordered `rows` array of 13 `{"name", "loop", "frames"}` entries (idle,
-walk, run, jump, fall, land, attack_1..3, attack_air, hit, dodge, death). `frames` is authoring
-guidance only; the compose script derives each animation's real frame count from its directory
-(walk: 8, others: 6).
+`character_sheet_map.json` is the single editable source: `cell_width`/`cell_height` (256) and a
+`sets` object with one entry per animation set. Each set has `columns` (16 for alert, 8 for
+non_alert), `sheet`/`tres` output paths, a pinned `uid`, and an ordered `rows` array of
+`{"name", "loop", "speed", "from"?, "columns"?}` entries. `from` (default `name`) resolves the
+source action directory; `columns` (default all) slices its frame list, letting `jump`/`land`/
+`fall` share the `jump` source in the alert set and `fall` reuse `land` in the non_alert set.
 
 ## Legacy pipelines (do NOT change)
 
