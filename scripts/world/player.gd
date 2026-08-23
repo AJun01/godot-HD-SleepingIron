@@ -42,11 +42,11 @@ var _was_on_floor: bool = true
 
 func _physics_process(delta: float) -> void:
 	var direction: Vector2 = _read_movement_input()
-	# Zero input means the player let go: clear the run tier and the last press
-	# so the next hold starts as walk (release + re-hold = walk again).
+	# Zero input means the player let go: clear the run tier but keep the last
+	# press record so a double-tap survives the release gap between its two
+	# taps; the window check in _track_double_tap expires stale records.
 	if direction == Vector2.ZERO:
 		running = false
-		_last_dir_key = Vector2.ZERO
 	_update_facing(direction.x)
 	_apply_horizontal_velocity(direction, delta)
 	_apply_gravity(delta)
